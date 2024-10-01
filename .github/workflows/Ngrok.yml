@@ -5,8 +5,7 @@ on:
     branches:
       - main
 
-  # Thêm phần này để có thể chạy thủ công
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   build:
@@ -46,4 +45,5 @@ jobs:
         curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
 
     - name: Display Ngrok URL
-      run: echo "Ngrok URL: $(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url')"
+      run: |
+        echo "Ngrok URL: $(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url')"
