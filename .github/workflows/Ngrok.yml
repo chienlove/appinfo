@@ -17,7 +17,7 @@ jobs:
     - name: Install Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '14'  # Sử dụng phiên bản Node.js phù hợp với dự án của bạn
+        node-version: '14'  # Bạn có thể thay đổi phiên bản Node.js tại đây
 
     - name: Install dependencies
       run: |
@@ -40,7 +40,7 @@ jobs:
         echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list && \
         sudo apt-get update && sudo apt-get install ngrok
 
-    - name: Authenticate Ngrok
+    - name: Authenticate Ngrok with token
       run: |
         ngrok config add-authtoken 2iVEKm9hNdVHe87oeUrun0U29Sc_4U4omHDmCnSUmRJhaCMmP
 
@@ -51,8 +51,10 @@ jobs:
     - name: Get Ngrok public URL
       run: |
         sleep 3
-        curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+        NGROK_URL=$(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+        echo "Ngrok URL: $NGROK_URL"
+        echo "NGROK_URL=$NGROK_URL" >> $GITHUB_ENV
 
     - name: Display Ngrok URL
       run: |
-        echo "Ngrok URL: $(curl -s http://127.0.0.1:4040/api/tunnels | jq -r '.tunnels[0].public_url')"
+        echo "Access your app at: ${{ env.NGROK_URL }}"
