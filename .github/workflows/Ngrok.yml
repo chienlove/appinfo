@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
@@ -15,10 +14,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Install Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'  # Sử dụng phiên bản Node.js phù hợp với dự án của bạn
+
     - name: Install dependencies
       run: |
-        sudo apt-get install -y nodejs npm
         npm install
+
+    - name: Debug environment
+      run: |
+        node -v  # Kiểm tra phiên bản Node.js
+        npm -v   # Kiểm tra phiên bản npm
+        uname -a # Kiểm tra hệ điều hành
 
     - name: Start local server
       run: |
@@ -38,7 +47,7 @@ jobs:
     - name: Start Ngrok
       run: |
         ngrok http 8080 > /dev/null &
-
+    
     - name: Get Ngrok public URL
       run: |
         sleep 3
