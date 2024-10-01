@@ -18,9 +18,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '16'  # Bạn có thể thay đổi phiên bản Node.js tại đây
-
     - name: Install dependencies
       run: |
+        cd $GITHUB_WORKSPACE
         npm install
 
     - name: Debug environment
