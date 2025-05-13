@@ -3,103 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Store Tracker</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="app-version.css?v=3.0">
+    <title>AppVision - Tra cứu ứng dụng iOS</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="app-version.css?v=4.0">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3905625903416797" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="app-container">
+        <!-- Header -->
         <header class="app-header">
             <div class="header-content container">
-                <h1><i class="fas fa-mobile-alt"></i> App Store Tracker</h1>
-                <p class="subtitle">Tra cứu thông tin ứng dụng và lịch sử phiên bản</p>
+                <div class="header-left">
+                    <div class="logo">
+                        <i class="fas fa-mobile-screen"></i>
+                        <span>AppVision</span>
+                    </div>
+                    <p class="subtitle">Công cụ tra cứu thông tin ứng dụng iOS</p>
+                </div>
+                <button class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
             </div>
         </header>
 
+        <!-- Main Content -->
         <main class="main-content container">
-            <!-- Search Section -->
-            <section class="search-section">
-                <form id="searchForm" class="search-form">
-                    <div class="search-input-group">
-                        <input type="text" id="searchTerm" 
-                               placeholder="Nhập App ID, tên ứng dụng hoặc URL App Store" 
-                               aria-label="Tìm kiếm ứng dụng">
-                        <button type="submit" class="search-button">
-                            <i class="fas fa-search"></i> Tìm kiếm
-                        </button>
-                    </div>
-                </form>
-                
+            <!-- Hero Section -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>Khám phá mọi thông tin ứng dụng iOS</h1>
+                    <p>Tìm kiếm thông tin chi tiết, lịch sử phiên bản và hơn thế nữa</p>
+                    
+                    <form id="searchForm" class="search-form">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchTerm" 
+                                   placeholder="Nhập App ID, tên ứng dụng hoặc URL App Store">
+                            <button type="submit" class="search-button">
+                                <span>Tìm kiếm</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="hero-image">
+                    <img src="https://cdn-icons-png.flaticon.com/512/887/887799.png" alt="App Store">
+                </div>
+            </section>
+
+            <!-- App Info Section -->
+            <section class="app-info-section">
                 <div id="loading" class="loading-container">
                     <div class="loader"></div>
                     <p class="loading-text">Đang tải dữ liệu...</p>
                 </div>
-            </section>
 
-            <!-- User Guide -->
-            <section class="user-guide">
-                <details class="guide-accordion" open>
-                    <summary class="guide-summary">
-                        <h2><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h2>
-                        <svg class="chevron" viewBox="0 0 24 24">
-                            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                        </svg>
-                    </summary>
-                    <div class="guide-content">
-                        <ol>
-                            <li>Nhập <strong>App ID</strong> (ví dụ: 284882215), <strong>tên ứng dụng</strong> hoặc <strong>URL App Store</strong></li>
-                            <li>Nhấn nút "Tìm kiếm" hoặc phím Enter</li>
-                            <li>Xem thông tin ứng dụng và lịch sử phiên bản</li>
-                        </ol>
-                        <div class="example-apps">
-                            <p><strong>Ứng dụng phổ biến:</strong></p>
-                            <div class="app-badges">
-                                <span class="app-badge" data-appid="284882215"><i class="fab fa-facebook"></i> Facebook</span>
-                                <span class="app-badge" data-appid="310633997"><i class="fab fa-whatsapp"></i> WhatsApp</span>
-                                <span class="app-badge" data-appid="389801252"><i class="fab fa-instagram"></i> Instagram</span>
-                            </div>
-                        </div>
-                    </div>
-                </details>
-            </section>
-
-            <!-- Results Section -->
-            <section class="results-section">
                 <div id="error" class="error-message"></div>
-                <div id="appInfo" class="app-info-container"></div>
-                <div id="result" class="results-container"></div>
-                <div id="pagination" class="pagination-container"></div>
+
+                <div id="appInfo" class="app-info-container">
+                    <!-- Will be populated by JavaScript -->
+                </div>
             </section>
 
-            <!-- Popular Apps -->
-            <section class="popular-apps">
-                <h3><i class="fas fa-fire"></i> Ứng dụng phổ biến</h3>
-                <div class="apps-carousel">
+            <!-- Popular Apps Section -->
+            <section class="popular-section">
+                <h2 class="section-title">
+                    <i class="fas fa-fire"></i>
+                    <span>Ứng dụng phổ biến</span>
+                </h2>
+                <div class="apps-grid">
                     <!-- Will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h2 class="section-title">Tại sao chọn AppVision?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3>Lịch sử phiên bản</h3>
+                        <p>Theo dõi tất cả các phiên bản đã phát hành của ứng dụng</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <h3>Thông tin chi tiết</h3>
+                        <p>Xem đầy đủ thông tin ứng dụng từ App Store</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h3>Cập nhật mới nhất</h3>
+                        <p>Luôn cập nhật thông tin mới nhất từ nhà phát triển</p>
+                    </div>
                 </div>
             </section>
         </main>
 
+        <!-- Footer -->
         <footer class="app-footer">
-            <div class="container">
-                <p>© 2023 App Store Tracker</p>
-                <div class="footer-links">
-                    <a href="/privacy"><i class="fas fa-lock"></i> Bảo mật</a>
-                    <span>|</span>
-                    <a href="/terms"><i class="fas fa-file-alt"></i> Điều khoản</a>
+            <div class="footer-content container">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <i class="fas fa-mobile-screen"></i>
+                        <span>AppVision</span>
+                    </div>
+                    <p class="footer-description">Công cụ tra cứu thông tin ứng dụng iOS chính xác và đầy đủ nhất</p>
                 </div>
+                
+                <div class="footer-links">
+                    <div class="links-group">
+                        <h3>Công cụ</h3>
+                        <a href="#">Tìm kiếm ứng dụng</a>
+                        <a href="#">Lịch sử phiên bản</a>
+                        <a href="#">Ứng dụng phổ biến</a>
+                    </div>
+                    <div class="links-group">
+                        <h3>Thông tin</h3>
+                        <a href="#">Về chúng tôi</a>
+                        <a href="#">Chính sách bảo mật</a>
+                        <a href="#">Điều khoản sử dụng</a>
+                    </div>
+                    <div class="links-group">
+                        <h3>Liên hệ</h3>
+                        <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="#"><i class="fab fa-twitter"></i> Twitter</a>
+                        <a href="mailto:support@appvision.com"><i class="fas fa-envelope"></i> Email</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2023 AppVision. All rights reserved.</p>
             </div>
         </footer>
     </div>
 
     <!-- Modal -->
     <div id="modal" class="modal">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Release Notes</h3>
-                <span class="modal-close">&times;</span>
+                <h3>Ghi chú cập nhật</h3>
+                <button class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="release-notes-content"></div>
@@ -107,6 +161,6 @@
         </div>
     </div>
 
-    <script src="app-version.js?v=3.0"></script>
+    <script src="app-version.js?v=4.0"></script>
 </body>
 </html>
