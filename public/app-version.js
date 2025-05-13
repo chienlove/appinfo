@@ -129,22 +129,17 @@ async function searchApp(term) {
     try {
         setDisplay('loading', 'flex');
         const appIdFromUrl = extractAppIdFromUrl(term);
-        
         if (appIdFromUrl) {
             await fetchAppInfo(appIdFromUrl);
             await fetchVersions(appIdFromUrl);
             return;
         }
-        
-        // Search by name - ĐÃ SỬA LỖI
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us&lang=vi_vn`);
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
-        
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
-        
         displaySearchResults(data.results);
     } catch (error) {
         console.error('searchApp Error:', error);
