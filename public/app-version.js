@@ -56,28 +56,29 @@ async function fetchAppInfo(appId) {
     try {
         document.getElementById('loading').style.display = 'flex';
         
-        // Sử dụng URL tuyệt đối
-        const apiUrl = `${window.location.origin}/api/appInfo?id=${appId}`;
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Accept': 'application/json'
-            }
+        const apiUrl = new URL('/api/appInfo', window.location.origin);
+        apiUrl.searchParams.set('id', appId);
+        
+        const response = await fetch(apiUrl.toString(), {
+            headers: { 'Accept': 'application/json' }
         });
-        
+
         if (!response.ok) {
-            throw new Error(`Lỗi HTTP: ${response.status}`);
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Lỗi HTTP: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        if (!data.results || data.results.length === 0) {
-            throw new Error('Không tìm thấy ứng dụng');
-        }
         
+        if (!data.results || !Array.isArray(data.results)) {
+            throw new Error('Dữ liệu ứng dụng không hợp lệ');
+        }
+
         displayAppInfo(data.results[0]);
         currentAppId = appId;
     } catch (error) {
-        console.error('fetchAppInfo error:', error);
-        showError(error.message);
+        console.error('fetchAppInfo Error:', error);
+        showError(`Không tải được thông tin ứng dụng: ${error.message}`);
     } finally {
         document.getElementById('loading').style.display = 'none';
     }
@@ -158,7 +159,7 @@ async function searchApp(term) {
         
         displaySearchResults(data.results);
     } catch (error) {
-        console.error('searchApp error:', error);
+        console.error('searchApp Error:', error);
         showError(error.message);
     } finally {
         document.getElementById('loading').style.display = 'none';
@@ -203,27 +204,30 @@ async function fetchVersions(appId) {
     try {
         document.getElementById('loading').style.display = 'flex';
         
-        // Sử dụng URL tuyệt đối
-        const apiUrl = `${window.location.origin}/api/getAppVersions?id=${appId}`;
-        const response = await fetch(apiUrl, {
-            headers: {
-                'Accept': 'application/json'
-            }
+        const apiUrl = new URL('/api/getAppVersions', window.location.origin);
+        apiUrl.searchParams.set('id', appId);
+        
+        const response = await fetch(apiUrl.toString(), {
+            headers: { 'Accept': 'application/json' }
         });
-        
-        if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
-        
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Lỗi HTTP: ${response.status}`);
+        }
+
         const data = await response.json();
+        
         if (!data.data || !Array.isArray(data.data)) {
             throw new Error('Dữ liệu phiên bản không hợp lệ');
         }
-        
+
         versions = data.data;
         renderVersions();
     } catch (error) {
-        console.error('fetchVersions error:', error);
-        showError(error.message);
-        document.getElementById('result').innerHTML = '<p>Không thể tải lịch sử phiên bản</p>';
+        console.error('fetchVersions Error:', error);
+        showError(`Không tải được lịch sử phiên bản: ${error.message}`);
+        document.getElementById('result').innerHTML = '';
     } finally {
         document.getElementById('loading').style.display = 'none';
     }

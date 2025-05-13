@@ -1,26 +1,27 @@
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
+  try {
     const appId = req.query.id;
-
+    
     if (!appId || !/^\d+$/.test(appId)) {
-        return res.status(400).json({
-            message: "Invalid app ID",
-            error: "App ID must be numeric",
-            appId
-        });
+      return res.status(400).json({
+        error: "Invalid App ID",
+        message: "App ID must be numeric"
+      });
     }
 
-    const apiUrl = `https://itunes.apple.com/lookup?id=${appId}`;
-
-    try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        return res.status(200).json(data);
-    } catch (error) {
-        return res.status(500).json({
-            message: "Lỗi khi gọi iTunes API",
-            error: error.message
-        });
-    }
-}
+    const response = await fetch(`https://itunes.apple.com/lookup?id=${appId}`);
+    const data = await response.json();
+    
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.status(200).json(data);
+    
+  } catch (error) {
+    console.error('iTunes API Error:', error);
+    res.status(500).json({
+      error: "iTunes API Error",
+      message: error.message
+    });
+  }
+};
