@@ -1,114 +1,127 @@
-// api/getAppVersions.js
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
-// Config
-const PRIMARY_API_URL = 'https://api.timbrd.com/apple/app-version/index.php';
-const FALLBACK_API_URL = 'https://storeios.net/api/getAppVersions';
-const TIMEOUT = 8000; // 8 seconds
-const MAX_RETRIES = 2;
+export default async function handler(req, res) {
+    const { id: appId, page = 1, limit = 1000 } = req.query;
 
-module.exports = async (req, res) => {
-  // CORS headers (cho phép gọi từ mọi domain)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Content-Type', 'application/json');
-
-  // Validate App ID
-  const appId = req.query.id;
-  if (!appId || !/^\d+$/.test(appId)) {
-    return res.status(400).json({
-      success: false,
-      error: "INVALID_APP_ID",
-      message: "App ID must be a numeric value",
-      requestedId: appId
-    });
-  }
-
-  try {
-    // Thử primary API trước
-    let data = await fetchWithRetry(
-      `${PRIMARY_API_URL}?id=${appId}`,
-      TIMEOUT,
-      MAX_RETRIES
-    );
-
-    // Nếu primary API fail, thử fallback
-    if (!data || data.error) {
-      data = await fetchWithRetry(
-        `${FALLBACK_API_URL}?id=${appId}`,
-        TIMEOUT,
-        MAX_RETRIES
-      );
+    if (!appId || !/^\d+$/.test(appId)) {
+        return res.status(400).json({
+            message: "Invalid app ID",
+            error: "App ID must be numeric",
+            appId
+        });
     }
 
-    // Nếu cả hai API đều fail
-    if (!data) {
-      throw new Error('All API requests failed');
+    try {
+        const result = await tryPrimaryApi(appId, page, limit);
+        return res.status(200).json(result);
+    } catch (primaryError) {
+        console.log('Primary API failed:', primaryError.message);
+        try {
+            const result = await tryFallbackApi(appId, page, limit);
+            return res.status(200).json(result);
+        } catch (fallbackError) {
+            console.error('Both APIs failed:', fallbackError);
+            return createErrorResponse(fallbackError, appId, res);
+        }
     }
-
-    // Format response chuẩn
-    const response = {
-      success: true,
-      appId: appId,
-      data: processData(data), // Xử lý data trước khi trả về
-      lastUpdated: new Date().toISOString()
-    };
-
-    return res.status(200).json(response);
-
-  } catch (error) {
-    // Log lỗi ra console (sẽ hiển thị trong Vercel Logs)
-    console.error('API Error:', error.message);
-
-    return res.status(500).json({
-      success: false,
-      error: "SERVER_ERROR",
-      message: "Unable to fetch app versions",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      appId: appId
-    });
-  }
-};
-
-// Hàm fetch với retry và timeout
-async function fetchWithRetry(url, timeout, retries) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15'
-      }
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (retries > 0) {
-      console.log(`Retrying ${url}... (${retries} left)`);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return fetchWithRetry(url, timeout, retries - 1);
-    }
-    throw error;
-  }
 }
 
-// Xử lý data từ API
-function processData(data) {
-  if (!data) return null;
+async function tryPrimaryApi(appId, page, limit) {
+    const apiUrl = `https://api.timbrd.com/apple/app-version/index.php?id=${appId}&page=${page}&limit=${limit}`;
+    const MAX_CHUNKS = 3;
 
-  // Chuẩn hóa dữ liệu (tùy API response)
-  return Array.isArray(data) 
-    ? data.map(item => ({
-        version: item.bundle_version || 'N/A',
-        releaseDate: item.created_at || null,
-        identifier: item.external_identifier || null
-      }))
-    : data;
+    let allData = [];
+    let hasMore = true;
+    let currentChunk = 1;
+
+    while (hasMore && currentChunk <= MAX_CHUNKS) {
+        const chunkUrl = `${apiUrl}&chunk=${currentChunk}`;
+        const chunkData = await fetchWithRetry(chunkUrl);
+
+        if (Array.isArray(chunkData) && chunkData.length > 0) {
+            allData = allData.concat(chunkData);
+            if (chunkData.length < limit) hasMore = false;
+        } else {
+            hasMore = false;
+        }
+
+        currentChunk++;
+    }
+
+    if (allData.length === 0) throw new Error('No data found in primary API');
+
+    return formatSuccessResponse(allData, currentChunk - 1, hasMore);
+}
+
+async function tryFallbackApi(appId, page, limit) {
+    const fallbackUrl = `https://storeios.net/api/getAppVersions?id=${appId}&page=${page}&limit=${limit}`;
+    const data = await fetchWithRetry(fallbackUrl);
+
+    if (!Array.isArray(data) || data.length === 0)
+        throw new Error('No data found in fallback API');
+
+    return formatSuccessResponse(data, 1, false);
+}
+
+async function fetchWithRetry(url, attempt = 1) {
+    const MAX_RETRIES = 3;
+    const TIMEOUT = 30000;
+
+    try {
+        const response = await fetch(url, {
+            timeout: TIMEOUT,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_7_1 like Mac OS X)',
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+        const text = await response.text();
+        if (!text || text.trim() === '') throw new Error('Empty response');
+
+        try {
+            return JSON.parse(text);
+        } catch (parseError) {
+            if (text.includes('sodar')) throw new Error('SODAR_REDIRECT');
+            throw parseError;
+        }
+
+    } catch (error) {
+        if (attempt < MAX_RETRIES && !error.message.includes('SODAR_REDIRECT')) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return fetchWithRetry(url, attempt + 1);
+        }
+        throw error;
+    }
+}
+
+function formatSuccessResponse(data, chunks, hasMore) {
+    const uniqueData = Array.from(new Map(data.map(item => [item.external_identifier, item])).values());
+
+    const sortedData = uniqueData.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+
+    return {
+        data: sortedData,
+        metadata: {
+            total: sortedData.length,
+            chunks,
+            hasMore
+        }
+    };
+}
+
+function createErrorResponse(error, appId, res) {
+    const statusCode = error.message.includes('404') ? 404 :
+                       error.message.includes('SODAR_REDIRECT') ? 403 : 500;
+
+    return res.status(statusCode).json({
+        message: "Request failed",
+        error: error.message,
+        appId
+    });
 }
