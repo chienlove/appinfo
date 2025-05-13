@@ -1,40 +1,35 @@
-const fetch = require('node-fetch');
+// api/getAppVersions.js - Vercel API Route
+import fetch from 'node-fetch';
 
-exports.handler = async function(event, context) {
-    const appId = event.queryStringParameters.id;
-    const page = event.queryStringParameters.page || 1;
-    const limit = event.queryStringParameters.limit || 1000;
+export default async function handler(req, res) {
+    const appId = req.query.id;
+    const page = req.query.page || 1;
+    const limit = req.query.limit || 1000;
     
     // Validate appId
     if (!appId || !/^\d+$/.test(appId)) {
-        return {
-            statusCode: 400,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify({
-                message: "Invalid app ID",
-                error: "App ID must be numeric",
-                appId: appId
-            })
-        };
+        return res.status(400).json({
+            message: "Invalid app ID",
+            error: "App ID must be numeric",
+            appId: appId
+        });
     }
 
     try {
         const result = await tryPrimaryApi(appId, page, limit);
-        return result;
+        return res.status(result.statusCode).json(JSON.parse(result.body));
     } catch (primaryError) {
         console.log('Primary API failed:', primaryError.message);
         try {
             const result = await tryFallbackApi(appId, page, limit);
-            return result;
+            return res.status(result.statusCode).json(JSON.parse(result.body));
         } catch (fallbackError) {
             console.error('Both APIs failed:', fallbackError);
-            return createErrorResponse(fallbackError, appId);
+            const errorResponse = createErrorResponse(fallbackError, appId);
+            return res.status(errorResponse.statusCode).json(JSON.parse(errorResponse.body));
         }
     }
-};
+}
 
 async function tryPrimaryApi(appId, page, limit) {
     const apiUrl = `https://api.timbrd.com/apple/app-version/index.php?id=${appId}&page=${page}&limit=${limit}`;

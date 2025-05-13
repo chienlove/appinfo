@@ -1,7 +1,8 @@
 {
   "name": "my-app",
   "dependencies": {
-    "node-fetch": "^3.3.0"
+    "node-fetch": "^3.3.0",
+    "node-fetch": "^2.6.7"
   },
   "engines": {
     "node": "18.x" // ⚠️ Vercel yêu cầu Node.js 16+
