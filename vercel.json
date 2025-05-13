@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.js",
+      "src": "api/**/*.js",  // Cập nhật để bao gồm mọi file JS trong thư mục api và các thư mục con
       "use": "@vercel/node@3.0.0"
     },
     {
@@ -16,8 +16,12 @@
       "dest": "/api/$1",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET"
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",  // Thêm OPTIONS và POST
+        "Access-Control-Allow-Headers": "Content-Type"  // Thêm header này
       }
+    },
+    {
+      "handle": "filesystem"  // Xử lý các file tĩnh
     },
     {
       "src": "/(.*)",
