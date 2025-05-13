@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",  // Cập nhật để bao gồm mọi file JS trong thư mục api và các thư mục con
+      "src": "api/**/*.js",
       "use": "@vercel/node@3.0.0"
     },
     {
@@ -12,16 +12,26 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
+      "src": "/api/getAppVersions",
+      "methods": ["GET", "OPTIONS"],
+      "dest": "/api/getAppVersions.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",  // Thêm OPTIONS và POST
-        "Access-Control-Allow-Headers": "Content-Type"  // Thêm header này
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
       }
     },
     {
-      "handle": "filesystem"  // Xử lý các file tĩnh
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
