@@ -136,7 +136,7 @@ async function searchApp(term) {
             return;
         }
         
-        // Search by name - ĐÃ SỬA LỖI PHẦN NÀY
+        // Search by name - ĐÃ SỬA LỖI
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us&lang=vi_vn`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
         
@@ -145,7 +145,6 @@ async function searchApp(term) {
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
         
-        // Hiển thị kết quả tìm kiếm
         displaySearchResults(data.results);
     } catch (error) {
         console.error('searchApp Error:', error);
@@ -182,16 +181,6 @@ function displaySearchResults(apps) {
             </div>
         </div>
     `);
-    
-    document.querySelectorAll('.app-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const appId = this.getAttribute('data-appid');
-            resetSearchState();
-            fetchAppInfo(appId);
-            fetchVersions(appId);
-        });
-    });
-}
     
     document.querySelectorAll('.app-item').forEach(item => {
         item.addEventListener('click', function() {
