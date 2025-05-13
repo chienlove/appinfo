@@ -72,7 +72,6 @@ function setupThemeToggle() {
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.body.classList.add('dark-mode');
         toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-        toggleBtn.classList.add('active');
     }
     
     toggleBtn.addEventListener('click', toggleTheme);
@@ -80,16 +79,14 @@ function setupThemeToggle() {
 
 function toggleTheme() {
     const body = document.body;
-    const toggleBtn = document.querySelector('.theme-toggle');
     const isDark = body.classList.toggle('dark-mode');
+    const toggleBtn = document.querySelector('.theme-toggle');
     
     if (isDark) {
         toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-        toggleBtn.classList.add('active');
         localStorage.setItem('theme', 'dark');
     } else {
         toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-        toggleBtn.classList.remove('active');
         localStorage.setItem('theme', 'light');
     }
 }
@@ -139,8 +136,8 @@ async function searchApp(term) {
             return;
         }
         
-        // Search by name - sửa lại phần này
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us`);
+        // Search by name - ĐÃ SỬA LỖI PHẦN NÀY
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us&lang=vi_vn`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
         
         const data = await response.json();
@@ -185,6 +182,16 @@ function displaySearchResults(apps) {
             </div>
         </div>
     `);
+    
+    document.querySelectorAll('.app-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const appId = this.getAttribute('data-appid');
+            resetSearchState();
+            fetchAppInfo(appId);
+            fetchVersions(appId);
+        });
+    });
+}
     
     document.querySelectorAll('.app-item').forEach(item => {
         item.addEventListener('click', function() {
