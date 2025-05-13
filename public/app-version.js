@@ -3,7 +3,20 @@ const perPage = 15;
 let versions = [];
 let currentAppId = null;
 
-// Utility functions
+// Utility DOM functions
+function getEl(id) {
+    return document.getElementById(id);
+}
+function setHTML(id, html) {
+    const el = getEl(id);
+    if (el) el.innerHTML = html;
+}
+function setDisplay(id, value) {
+    const el = getEl(id);
+    if (el) el.style.display = value;
+}
+
+// Utility data functions
 function sanitizeHTML(str) {
     if (!str) return '';
     return str.toString()
@@ -21,76 +34,60 @@ function formatDate(dateString) {
 }
 
 function showError(message) {
-    const errorElement = document.getElementById('error');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
-    document.getElementById('loading').style.display = 'none';
+    setHTML('error', message);
+    setDisplay('error', 'block');
+    setDisplay('loading', 'none');
 }
 
 function extractAppIdFromUrl(url) {
     if (!url) return null;
-    
-    if (/^\d+$/.test(url)) {
-        return url;
-    }
-    
+    if (/^\d+$/.test(url)) return url;
     const patterns = [
         /\/id(\d+)/i,
         /\/app\/[^\/]+\/id(\d+)/i,
         /[?&]id=(\d+)/i,
         /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/(\d+)/i
     ];
-    
     for (const pattern of patterns) {
         const match = url.match(pattern);
-        if (match && match[1]) {
-            return match[1];
-        }
+        if (match && match[1]) return match[1];
     }
-    
     return null;
 }
 
-// Fetch App Info
 async function fetchAppInfo(appId) {
     try {
-        document.getElementById('loading').style.display = 'flex';
-        
+        setDisplay('loading', 'flex');
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('id', appId);
-        
         const response = await fetch(apiUrl.toString(), {
             headers: { 'Accept': 'application/json' }
         });
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
             throw new Error(errorData?.message || `Lỗi HTTP: ${response.status}`);
         }
-
         const data = await response.json();
-        
         if (!data.results || !Array.isArray(data.results)) {
             throw new Error('Dữ liệu ứng dụng không hợp lệ');
         }
-
         displayAppInfo(data.results[0]);
         currentAppId = appId;
     } catch (error) {
         console.error('fetchAppInfo Error:', error);
         showError(`Không tải được thông tin ứng dụng: ${error.message}`);
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        setDisplay('loading', 'none');
     }
 }
 
 function displayAppInfo(app) {
-    const appInfo = document.getElementById('appInfo');
+    const appInfo = getEl('appInfo');
+    if (!appInfo) return;
     const iconUrl = app.artworkUrl512 || app.artworkUrl100 || app.artworkUrl60;
     const fileSizeMB = app.fileSizeBytes ? (app.fileSizeBytes / (1024 * 1024)).toFixed(1) + ' MB' : 'Không rõ';
     const rating = app.averageUserRating ? app.averageUserRating.toFixed(1) + '★' : 'Chưa có';
     const appStoreUrl = `https://apps.apple.com/app/id${app.trackId}`;
-    
     appInfo.innerHTML = `
         <div class="app-info-header">
             <a href="${appStoreUrl}" target="_blank" class="app-icon-link">
@@ -101,7 +98,6 @@ function displayAppInfo(app) {
                 <p class="app-developer">${sanitizeHTML(app.artistName)}</p>
             </div>
         </div>
-        
         <div class="app-meta-grid">
             <div class="app-meta-item">
                 <div class="app-meta-label">Phiên bản hiện tại</div>
@@ -120,12 +116,10 @@ function displayAppInfo(app) {
                 <div class="app-meta-value">${rating}</div>
             </div>
         </div>
-        
         <div class="bundle-id-container">
             <div class="app-meta-label">Bundle ID</div>
             <div class="app-meta-value">${sanitizeHTML(app.bundleId || 'Không rõ')}</div>
         </div>
-        
         ${app.releaseNotes ? `
         <div class="release-notes-container">
             <h3 class="release-notes-title">Ghi chú phát hành</h3>
@@ -133,42 +127,35 @@ function displayAppInfo(app) {
         </div>
         ` : ''}
     `;
-    
     appInfo.style.display = 'block';
 }
 
-// Search App
 async function searchApp(term) {
     try {
-        document.getElementById('loading').style.display = 'flex';
-        
+        setDisplay('loading', 'flex');
         const appIdFromUrl = extractAppIdFromUrl(term);
         if (appIdFromUrl) {
             await fetchAppInfo(appIdFromUrl);
             await fetchVersions(appIdFromUrl);
             return;
         }
-        
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
-        
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
-        
         displaySearchResults(data.results);
     } catch (error) {
         console.error('searchApp Error:', error);
         showError(error.message);
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        setDisplay('loading', 'none');
     }
 }
 
 function displaySearchResults(apps) {
-    const result = document.getElementById('result');
-    result.innerHTML = `
+    setHTML('result', `
         <div class="search-results">
             <h3>Kết quả tìm kiếm (${apps.length})</h3>
             <div class="apps-list">
@@ -186,68 +173,56 @@ function displaySearchResults(apps) {
                 `).join('')}
             </div>
         </div>
-    `;
-    
+    `);
     document.querySelectorAll('.app-item').forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function () {
             const appId = this.getAttribute('data-appid');
-            document.getElementById('appInfo').style.display = 'none';
-            document.getElementById('result').innerHTML = '<p>Đang tải thông tin...</p>';
+            setDisplay('appInfo', 'none');
+            setHTML('result', '<p>Đang tải thông tin...</p>');
             fetchAppInfo(appId);
             fetchVersions(appId);
         });
     });
 }
 
-// Fetch Versions
 async function fetchVersions(appId) {
     try {
-        document.getElementById('loading').style.display = 'flex';
-        
+        setDisplay('loading', 'flex');
         const apiUrl = new URL('/api/getAppVersions', window.location.origin);
         apiUrl.searchParams.set('id', appId);
-        
         const response = await fetch(apiUrl.toString(), {
             headers: { 'Accept': 'application/json' }
         });
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => null);
             throw new Error(errorData?.message || `Lỗi HTTP: ${response.status}`);
         }
-
         const data = await response.json();
-        
         if (!data.data || !Array.isArray(data.data)) {
             throw new Error('Dữ liệu phiên bản không hợp lệ');
         }
-
-        versions = data.data;
+        // Sắp xếp từ mới đến cũ
+        versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         renderVersions();
     } catch (error) {
         console.error('fetchVersions Error:', error);
         showError(`Không tải được lịch sử phiên bản: ${error.message}`);
-        document.getElementById('result').innerHTML = '';
+        setHTML('result', '');
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        setDisplay('loading', 'none');
     }
 }
 
 function renderVersions() {
-    const result = document.getElementById('result');
-    const pagination = document.getElementById('pagination');
-    
-    if (versions.length === 0) {
-        result.innerHTML = '<p>Không có dữ liệu phiên bản</p>';
-        pagination.innerHTML = '';
-        return;
-    }
-    
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
     const paginatedVersions = versions.slice(start, end);
-    
-    result.innerHTML = `
+    if (versions.length === 0) {
+        setHTML('result', '<p>Không có dữ liệu phiên bản</p>');
+        setHTML('pagination', '');
+        return;
+    }
+    setHTML('result', `
         <div class="versions-container">
             <div class="versions-header">
                 <h3>Lịch sử Phiên bản</h3>
@@ -274,64 +249,55 @@ function renderVersions() {
                 </table>
             </div>
         </div>
-    `;
-    
+    `);
     renderPagination();
 }
 
 function renderPagination() {
     const totalPages = Math.ceil(versions.length / perPage);
-    const pagination = document.getElementById('pagination');
-    
     if (totalPages <= 1) {
-        pagination.innerHTML = '';
+        setHTML('pagination', '');
         return;
     }
-    
-    let paginationHTML = '<div class="pagination">';
-    
+    let html = '<div class="pagination">';
     if (currentPage > 1) {
-        paginationHTML += `<button class="pagination-button" data-page="${currentPage - 1}">←</button>`;
+        html += `<button class="pagination-button" data-page="${currentPage - 1}">←</button>`;
     }
-    
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
-    
     for (let i = startPage; i <= endPage; i++) {
-        paginationHTML += `<button class="pagination-button ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        html += `<button class="pagination-button ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
     }
-    
     if (currentPage < totalPages) {
-        paginationHTML += `<button class="pagination-button" data-page="${currentPage + 1}">→</button>`;
+        html += `<button class="pagination-button" data-page="${currentPage + 1}">→</button>`;
     }
-    
-    paginationHTML += '</div>';
-    pagination.innerHTML = paginationHTML;
-    
+    html += '</div>';
+    setHTML('pagination', html);
+
     document.querySelectorAll('.pagination-button').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             currentPage = parseInt(this.getAttribute('data-page'));
             renderVersions();
-            window.scrollTo({ top: document.getElementById('result').offsetTop, behavior: 'smooth' });
+            const resultEl = getEl('result');
+            if (resultEl) window.scrollTo({ top: resultEl.offsetTop, behavior: 'smooth' });
         });
     });
 }
 
-// Initialize
-document.getElementById('searchForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const term = document.getElementById('searchTerm').value.trim();
-    
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('error').style.display = 'none';
-    document.getElementById('appInfo').style.display = 'none';
-    document.getElementById('result').innerHTML = '';
-    document.getElementById('pagination').innerHTML = '';
-    versions = [];
-    currentPage = 1;
-    currentAppId = null;
-    
-    if (term) {
-        searchApp(term);
-    }
-});
+// Form Submit
+const form = getEl('searchForm');
+if (form) {
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const term = getEl('searchTerm')?.value.trim();
+        setDisplay('loading', 'flex');
+        setDisplay('error', 'none');
+        setDisplay('appInfo', 'none');
+        setHTML('result', '');
+        setHTML('pagination', '');
+        versions = [];
+        currentPage = 1;
+        currentAppId = null;
+        if (term) searchApp(term);
+    });
+}
