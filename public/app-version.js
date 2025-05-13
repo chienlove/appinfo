@@ -72,6 +72,7 @@ function setupThemeToggle() {
         (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.body.classList.add('dark-mode');
         toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        toggleBtn.classList.add('active');
     }
     
     toggleBtn.addEventListener('click', toggleTheme);
@@ -79,14 +80,16 @@ function setupThemeToggle() {
 
 function toggleTheme() {
     const body = document.body;
-    const isDark = body.classList.toggle('dark-mode');
     const toggleBtn = document.querySelector('.theme-toggle');
+    const isDark = body.classList.toggle('dark-mode');
     
     if (isDark) {
         toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        toggleBtn.classList.add('active');
         localStorage.setItem('theme', 'dark');
     } else {
         toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+        toggleBtn.classList.remove('active');
         localStorage.setItem('theme', 'light');
     }
 }
@@ -241,8 +244,10 @@ function displayAppInfo(app) {
         <div class="app-info-header">
             <img src="${iconUrl}" alt="${sanitizeHTML(app.trackName)}" class="app-icon-large">
             <div class="app-title-wrapper">
-                <h2 class="app-title">${sanitizeHTML(app.trackName)}</h2>
-                <p class="app-developer">${sanitizeHTML(app.artistName)}</p>
+                <div class="app-title-row">
+                    <h2 class="app-title">${sanitizeHTML(app.trackName)}</h2>
+                    <p class="app-developer">${sanitizeHTML(app.artistName)}</p>
+                </div>
                 <a href="${appStoreUrl}" target="_blank" class="app-store-button">
                     <i class="fab fa-apple"></i>
                     <span>Xem trên App Store</span>
@@ -300,14 +305,21 @@ function displayAppInfo(app) {
     
     const tabsHTML = `
         <div class="app-info-tabs">
-            <button class="tab-btn ${activeTab === 'info' ? 'active' : ''}" data-tab="info">Thông tin</button>
-            <button class="tab-btn ${activeTab === 'versions' ? 'active' : ''}" data-tab="versions">Lịch sử phiên bản</button>
+            <button class="tab-btn ${activeTab === 'info' ? 'active' : ''}" data-tab="info">
+                <i class="fas fa-info-circle"></i>
+                <span>Thông tin</span>
+            </button>
+            <button class="tab-btn ${activeTab === 'versions' ? 'active' : ''}" data-tab="versions">
+                <i class="fas fa-history"></i>
+                <span>Lịch sử phiên bản</span>
+            </button>
         </div>
         <div class="tab-content ${activeTab === 'info' ? 'active' : ''}" id="info-tab">
             ${infoHTML}
         </div>
         <div class="tab-content ${activeTab === 'versions' ? 'active' : ''}" id="versions-tab">
             <div id="versions-content"></div>
+            <div id="pagination" class="pagination-container"></div>
         </div>
     `;
     
@@ -404,11 +416,10 @@ function renderVersions() {
         <div class="versions-header">
             <h3>
                 <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản</span>
+                <span>Lịch sử Phiên bản (${versions.length})</span>
             </h3>
             <div class="versions-controls">
                 <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản...">
-                <span class="total-versions">${versions.length} phiên bản</span>
             </div>
         </div>
         <div class="versions-scroll-container">

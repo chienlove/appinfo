@@ -106,6 +106,11 @@ body {
     align-items: center;
     justify-content: center;
     transition: var(--transition);
+    position: relative;
+}
+
+.theme-toggle.active {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .theme-toggle:hover {
@@ -157,6 +162,7 @@ body {
 /* ===== SEARCH FORM ===== */
 .search-form {
     max-width: 600px;
+    width: 100%;
 }
 
 .search-input-group {
@@ -195,6 +201,7 @@ body {
     color: white;
     border: none;
     padding: 0 25px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -268,7 +275,7 @@ body {
 }
 
 .tab-btn {
-    padding: 16px 24px;
+    padding: 12px 24px;
     background: none;
     border: none;
     border-bottom: 3px solid transparent;
@@ -278,6 +285,9 @@ body {
     transition: var(--transition);
     position: relative;
     font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .tab-btn.active {
@@ -305,6 +315,7 @@ body {
     display: flex;
     gap: 24px;
     margin-bottom: 24px;
+    align-items: center;
 }
 
 .app-icon-large {
@@ -325,16 +336,19 @@ body {
     flex: 1;
 }
 
+.app-title-row {
+    margin-bottom: 16px;
+}
+
 .app-title {
     font-size: 24px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     color: var(--text-color);
 }
 
 .app-developer {
     color: var(--text-light);
-    margin-bottom: 16px;
     font-size: 15px;
 }
 
@@ -344,7 +358,7 @@ body {
     gap: 8px;
     background-color: var(--primary-color);
     color: white;
-    padding: 8px 16px;
+    padding: 10px 16px;
     border-radius: var(--radius-sm);
     text-decoration: none;
     font-weight: 500;
@@ -468,12 +482,15 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .versions-header h3 {
     font-size: 18px;
     font-weight: 600;
     color: var(--text-color);
+    margin: 0;
 }
 
 .versions-controls {
@@ -487,13 +504,14 @@ body {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     font-size: 14px;
-    width: 200px;
+    min-width: 200px;
 }
 
 .versions-scroll-container {
     overflow-x: auto;
     border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
 }
 
 .versions-table {
