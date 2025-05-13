@@ -174,48 +174,21 @@ body {
     transition: var(--transition);
 }
 
-.search-input-group:focus-within {
-    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-}
-
-.search-icon {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-light);
-    z-index: 1;
-}
-
-#searchTerm {
-    flex: 1;
-    padding: 16px 20px 16px 50px;
-    border: none;
-    font-size: 16px;
-    outline: none;
-    background-color: var(--card-bg);
-}
-
 .search-button {
     background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 0 25px;
+    min-width: 120px; /* Thêm min-width để nút không bị thu nhỏ */
     font-size: 16px;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
     cursor: pointer;
     transition: var(--transition);
 }
 
-.search-button:hover {
-    background-color: var(--primary-hover);
-}
-
-.search-button i {
-    font-size: 14px;
-}
 
 /* ===== LOADING ===== */
 .loading-container {

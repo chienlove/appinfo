@@ -139,8 +139,8 @@ async function searchApp(term) {
             return;
         }
         
-        // Search by name
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10`);
+        // Search by name - sửa lại phần này
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
         
         const data = await response.json();
@@ -148,6 +148,7 @@ async function searchApp(term) {
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
         
+        // Hiển thị kết quả tìm kiếm
         displaySearchResults(data.results);
     } catch (error) {
         console.error('searchApp Error:', error);
