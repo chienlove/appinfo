@@ -1021,3 +1021,31 @@ body.dark-mode {
         width: 100%;
     }
 }
+/* Thêm vào cuối file */
+.search-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0 25px;
+    min-width: 120px;
+    height: 100%;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+
+.search-input-group {
+    min-height: 50px;
+}
+
+@media (max-width: 576px) {
+    .search-button {
+        padding: 12px;
+        min-width: 100%;
+    }
+}

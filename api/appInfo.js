@@ -1,19 +1,35 @@
 module.exports = async (req, res) => {
   try {
-    const appId = req.query.id;
+    const { id, term } = req.query;
     
-    // Kiểm tra định dạng App ID
-    if (!appId || !/^\d+$/.test(appId)) {
+    // Nếu là tìm kiếm bằng tên
+    if (term) {
+      const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`iTunes Search Error: ${response.status} - ${errorText}`);
+        return res.status(response.status).json({
+          error: "iTunes Search Error",
+          message: `HTTP ${response.status}`
+        });
+      }
+
+      const data = await response.json();
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.status(200).json(data);
+    }
+    
+    // Nếu là tìm kiếm bằng App ID
+    if (!id || !/^\d+$/.test(id)) {
       return res.status(400).json({
         error: "Invalid App ID",
         message: "App ID must be numeric"
       });
     }
 
-    // Gọi API iTunes
-    const response = await fetch(`https://itunes.apple.com/lookup?id=${appId}`);
+    const response = await fetch(`https://itunes.apple.com/lookup?id=${id}`);
     
-    // Kiểm tra nếu lỗi HTTP
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`iTunes API Error: ${response.status} - ${errorText}`);
@@ -24,8 +40,6 @@ module.exports = async (req, res) => {
     }
 
     const data = await response.json();
-
-    // Caching 1 tiếng
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.status(200).json(data);
 
