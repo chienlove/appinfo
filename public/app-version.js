@@ -30,12 +30,10 @@ function showError(message) {
 function extractAppIdFromUrl(url) {
     if (!url) return null;
     
-    // Kiểm tra xem có phải là số (App ID)
     if (/^\d+$/.test(url)) {
         return url;
     }
     
-    // Kiểm tra các định dạng URL App Store
     const patterns = [
         /\/id(\d+)/i,
         /\/app\/[^\/]+\/id(\d+)/i,
@@ -57,8 +55,18 @@ function extractAppIdFromUrl(url) {
 async function fetchAppInfo(appId) {
     try {
         document.getElementById('loading').style.display = 'flex';
-        const response = await fetch(`/api/appInfo?id=${appId}`);
-        if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+        
+        // Sử dụng URL tuyệt đối
+        const apiUrl = `${window.location.origin}/api/appInfo?id=${appId}`;
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Lỗi HTTP: ${response.status}`);
+        }
         
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
@@ -68,6 +76,7 @@ async function fetchAppInfo(appId) {
         displayAppInfo(data.results[0]);
         currentAppId = appId;
     } catch (error) {
+        console.error('fetchAppInfo error:', error);
         showError(error.message);
     } finally {
         document.getElementById('loading').style.display = 'none';
@@ -132,7 +141,6 @@ async function searchApp(term) {
     try {
         document.getElementById('loading').style.display = 'flex';
         
-        // Kiểm tra xem có phải là URL App Store không
         const appIdFromUrl = extractAppIdFromUrl(term);
         if (appIdFromUrl) {
             await fetchAppInfo(appIdFromUrl);
@@ -140,7 +148,6 @@ async function searchApp(term) {
             return;
         }
         
-        // Nếu không phải URL thì tìm kiếm bằng tên
         const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10`);
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
         
@@ -151,6 +158,7 @@ async function searchApp(term) {
         
         displaySearchResults(data.results);
     } catch (error) {
+        console.error('searchApp error:', error);
         showError(error.message);
     } finally {
         document.getElementById('loading').style.display = 'none';
@@ -179,7 +187,6 @@ function displaySearchResults(apps) {
         </div>
     `;
     
-    // Thêm sự kiện click cho mỗi ứng dụng
     document.querySelectorAll('.app-item').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
@@ -195,7 +202,15 @@ function displaySearchResults(apps) {
 async function fetchVersions(appId) {
     try {
         document.getElementById('loading').style.display = 'flex';
-        const response = await fetch(`/api/getAppVersions?id=${appId}`);
+        
+        // Sử dụng URL tuyệt đối
+        const apiUrl = `${window.location.origin}/api/getAppVersions?id=${appId}`;
+        const response = await fetch(apiUrl, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
         if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
         
         const data = await response.json();
@@ -206,6 +221,7 @@ async function fetchVersions(appId) {
         versions = data.data;
         renderVersions();
     } catch (error) {
+        console.error('fetchVersions error:', error);
         showError(error.message);
         document.getElementById('result').innerHTML = '<p>Không thể tải lịch sử phiên bản</p>';
     } finally {
@@ -270,12 +286,10 @@ function renderPagination() {
     
     let paginationHTML = '<div class="pagination">';
     
-    // Previous button
     if (currentPage > 1) {
         paginationHTML += `<button class="pagination-button" data-page="${currentPage - 1}">←</button>`;
     }
     
-    // Page numbers
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
     
@@ -283,7 +297,6 @@ function renderPagination() {
         paginationHTML += `<button class="pagination-button ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
     }
     
-    // Next button
     if (currentPage < totalPages) {
         paginationHTML += `<button class="pagination-button" data-page="${currentPage + 1}">→</button>`;
     }
@@ -291,7 +304,6 @@ function renderPagination() {
     paginationHTML += '</div>';
     pagination.innerHTML = paginationHTML;
     
-    // Add event listeners
     document.querySelectorAll('.pagination-button').forEach(button => {
         button.addEventListener('click', function() {
             currentPage = parseInt(this.getAttribute('data-page'));
@@ -306,7 +318,6 @@ document.getElementById('searchForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const term = document.getElementById('searchTerm').value.trim();
     
-    // Reset UI
     document.getElementById('loading').style.display = 'flex';
     document.getElementById('error').style.display = 'none';
     document.getElementById('appInfo').style.display = 'none';
