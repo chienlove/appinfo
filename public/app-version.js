@@ -613,11 +613,11 @@ function setupPopularApps() {
         { id: '284882215', name: 'Facebook', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/db/c7/9f/dbc79f47-9d5b-ca77-1ecc-d3ef0fc92128/Icon-Production-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg' },
         { id: '310633997', name: 'WhatsApp', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/69/2e/e4/692ee480-dbf0-e730-1328-ce292003fa09/AppIcon-0-0-1x_U007ephone-0-0-0-1-0-0-0-85-220.png/100x100bb.jpg' },
         { id: '389801252', name: 'Instagram', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/57/57/87/57578709-23d2-5fb2-487b-eff35e3aade4/Prod-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/100x100bb.jpg' },
-        { id: '333903271', name: 'Twitter', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
-        { id: '545519333', name: 'TikTok', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
-        { id: '447188370', name: 'Chrome', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
-        { id: '414478124', name: 'YouTube', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
-        { id: 'id284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' }
+        { id: '333903271', name: 'X', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bc/79/94/bc7994ae-e7a5-241f-403e-281e827d2427/ProductionAppIcon-0-0-1x_U007emarketing-0-8-0-0-0-85-220.png/100x100bb.jpg' },
+        { id: '545519333', name: 'TikTok', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ab/53/cc/ab53cc04-35b9-66f1-d811-d67f16482515/AppIcon_TikTok-0-0-1x_U007epad-0-1-0-0-85-220.png/100x100bb.jpg' },
+        { id: '447188370', name: 'Chrome', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/be/88/17/be88172d-bab8-1d57-a087-63f694ed898e/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/100x100bb.jpg' },
+        { id: '414478124', name: 'YouTube', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/79/90/0b/79900b7c-1363-621a-fad2-1cad6ffcc425/logo_youtube_2024_q4_color-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220-0.png/100x100bb.jpgg' },
+        { id: 'id284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/cf/2f/52/cf2f5243-39c3-8d39-4775-f8cd1453ecfe/logo_maps_ios_color-0-1x_U007emarketing-0-0-0-7-0-0-0-0-85-220-0.png/100x100bb.jpg' }
     ];
     
     const appsGrid = document.querySelector('.apps-grid');
