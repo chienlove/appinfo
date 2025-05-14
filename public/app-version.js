@@ -136,9 +136,18 @@ async function searchApp(term) {
             return;
         }
         
-        // Search by name - ĐÃ SỬA LỖI
-        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=software&limit=10&country=us&lang=vi_vn`);
-        if (!response.ok) throw new Error(`Lỗi HTTP: ${response.status}`);
+        // Sửa phần này - gọi qua endpoint /api/appInfo thay vì gọi trực tiếp
+        const apiUrl = new URL('/api/appInfo', window.location.origin);
+        apiUrl.searchParams.set('term', term);
+        
+        const response = await fetch(apiUrl.toString(), {
+            headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
+        }
         
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
