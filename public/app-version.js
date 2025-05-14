@@ -54,12 +54,42 @@ function initApp() {
     setupSearchForm();
     setupPopularApps();
     checkUrlForAppId();
+    setupHelpSection();
     
     // Load ads
     if (typeof adsbygoogle !== 'undefined') {
         adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
+}
+
+// Setup help section toggle
+function setupHelpSection() {
+    const helpContainer = document.querySelector('.help-container');
+    if (!helpContainer) return;
+    
+    const toggleHelp = () => {
+        helpContainer.classList.toggle('expanded');
+    };
+    
+    helpContainer.addEventListener('click', function(e) {
+        // Only toggle when clicking on header or when collapsed
+        if (!helpContainer.classList.contains('expanded') || e.target.closest('.help-toggle')) {
+            toggleHelp();
+        }
+    });
+    
+    // Add toggle header
+    const helpContent = helpContainer.innerHTML;
+    helpContainer.innerHTML = `
+        <div class="help-toggle">
+            <span><i class="fas fa-question-circle"></i> Hướng dẫn sử dụng</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+        <div class="help-content">
+            ${helpContent}
+        </div>
+    `;
 }
 
 // Theme toggle functionality
@@ -198,7 +228,7 @@ function displaySearchResults(apps) {
     
     container.style.display = 'block';
     
-    // Thêm sự kiện click cho các kết quả tìm kiếm
+    // Add click event for search results
     document.querySelectorAll('.app-item').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
@@ -390,7 +420,7 @@ async function fetchVersions(appId) {
         const apiUrl = new URL('/api/getAppVersions', window.location.origin);
         apiUrl.searchParams.set('id', appId);
         
-        // Thêm timeout riêng cho fetchVersions
+        // Add timeout for fetchVersions
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
         
@@ -419,7 +449,7 @@ async function fetchVersions(appId) {
             clearTimeout(timeout);
             if (fetchError.name === 'AbortError') {
                 console.log('Sử dụng dữ liệu mẫu do timeout');
-                // Sử dụng dữ liệu mẫu nếu API timeout
+                // Use sample data if API timeout
                 versions = [
                     {
                         bundle_version: "1.0.0",
