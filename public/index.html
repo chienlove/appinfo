@@ -2,11 +2,21 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Tra cứu thông tin ứng dụng iOS - Xem lịch sử phiên bản, thông tin chi tiết, ghi chú cập nhật của các ứng dụng trên App Store">
+    <meta name="keywords" content="tra cứu ứng dụng iOS, lịch sử phiên bản app, thông tin ứng dụng, App Store, bundle ID, version app">
+    <meta name="author" content="AppInfo Team">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="AppInfo - Tra cứu thông tin ứng dụng iOS">
+    <meta property="og:description" content="Công cụ tra cứu thông tin chi tiết và lịch sử phiên bản các ứng dụng iOS trên App Store">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://appinfo.example.com">
+    <meta property="og:image" content="https://appinfo.example.com/images/og-image.jpg">
     <title>AppInfo - Tra cứu ứng dụng iOS</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="app-version.css?v=4.2">
+    <link rel="stylesheet" href="app-version.css?v=4.3">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3905625903416797" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -46,11 +56,59 @@
                             </button>
                         </div>
                     </form>
+
+                    <!-- Help Section -->
+                    <div class="quick-help">
+                        <div class="help-toggle">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Hướng dẫn nhanh</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng tên ứng dụng</h4>
+                                        <p>Nhập tên ứng dụng vào ô tìm kiếm và nhấn nút "Tìm kiếm"</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng App ID</h4>
+                                        <p>Nhập ID số của ứng dụng (9-10 chữ số) để xem thông tin</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng URL App Store</h4>
+                                        <p>Dán URL đầy đủ từ App Store vào ô tìm kiếm</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="hero-image">
                     <img src="https://cdn-icons-png.flaticon.com/512/887/887799.png" alt="App Store">
                 </div>
             </section>
+
+            <!-- Ads Banner -->
+            <div class="ads-container">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-3905625903416797"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+                <div class="ads-label">Quảng cáo</div>
+            </div>
 
             <!-- App Info Section -->
             <section class="app-info-section">
@@ -85,76 +143,9 @@
                 </div>
             </section>
 
-            <!-- Help Section -->
-            <section class="help-section">
-                <h2 class="section-title">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Hướng dẫn sử dụng</span>
-                </h2>
-                <div class="help-container">
-                    <div class="help-item">
-                        <h3><i class="fas fa-search"></i> Cách tìm kiếm ứng dụng</h3>
-                        <p>Bạn có thể tìm kiếm ứng dụng bằng nhiều cách khác nhau:</p>
-                        
-                        <div class="help-steps">
-                            <div class="step">
-                                <div class="step-number">1</div>
-                                <div class="step-content">
-                                    <h4>Tìm bằng tên ứng dụng</h4>
-                                    <p>Nhập tên ứng dụng vào ô tìm kiếm và nhấn nút "Tìm kiếm". Hệ thống sẽ hiển thị danh sách các ứng dụng phù hợp.</p>
-                                    <div class="example">Ví dụ: Facebook, TikTok, Zalo</div>
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <div class="step-number">2</div>
-                                <div class="step-content">
-                                    <h4>Tìm bằng App ID</h4>
-                                    <p>Nhập ID số của ứng dụng (thường là 9-10 chữ số) để xem thông tin chi tiết ngay lập tức.</p>
-                                    <div class="example">Ví dụ: 284882215 (Facebook), 545519333 (TikTok)</div>
-                                </div>
-                            </div>
-                            
-                            <div class="step">
-                                <div class="step-number">3</div>
-                                <div class="step-content">
-                                    <h4>Tìm bằng URL App Store</h4>
-                                    <p>Dán URL đầy đủ từ App Store vào ô tìm kiếm, hệ thống sẽ tự động trích xuất App ID.</p>
-                                    <div class="example">Ví dụ: https://apps.apple.com/vn/app/facebook/id284882215</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="help-item">
-                        <h3><i class="fas fa-info-circle"></i> Thông tin ứng dụng</h3>
-                        <p>Sau khi tìm thấy ứng dụng, bạn sẽ thấy các thông tin sau:</p>
-                        <ul>
-                            <li>Tên ứng dụng và nhà phát triển</li>
-                            <li>Phiên bản hiện tại và kích thước</li>
-                            <li>Ngày phát hành và đánh giá</li>
-                            <li>Bundle ID (có thể sao chép bằng nút bên cạnh)</li>
-                            <li>Ghi chú cập nhật (nếu có)</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="help-item">
-                        <h3><i class="fas fa-history"></i> Lịch sử phiên bản</h3>
-                        <p>Chuyển sang tab "Lịch sử phiên bản" để xem:</p>
-                        <ul>
-                            <li>Tất cả các phiên bản đã phát hành</li>
-                            <li>Ngày phát hành từng phiên bản</li>
-                            <li>Ghi chú cập nhật (nhấn nút "Xem" để đọc)</li>
-                            <li>Phân loại phiên bản (Lớn/Nhỏ/Sửa lỗi)</li>
-                        </ul>
-                        <p>Bạn có thể tìm kiếm phiên bản cụ thể bằng ô tìm kiếm hoặc sử dụng phân trang để xem nhiều kết quả hơn.</p>
-                    </div>
-                </div>
-            </section>
-
             <!-- Features Section -->
             <section class="features-section">
-                <h2 class="section-title">Tại sao chọn AppInfo Storeios?</h2>
+                <h2 class="section-title">Tại sao chọn AppInfo?</h2>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">
@@ -236,6 +227,6 @@
         </div>
     </div>
 
-    <script src="app-version.js?v=4.2"></script>
+    <script src="app-version.js?v=4.3"></script>
 </body>
 </html>

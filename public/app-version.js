@@ -53,8 +53,8 @@ function initApp() {
     setupThemeToggle();
     setupSearchForm();
     setupPopularApps();
+    setupQuickHelp();
     checkUrlForAppId();
-    setupHelpSection();
     
     // Load ads
     if (typeof adsbygoogle !== 'undefined') {
@@ -63,33 +63,16 @@ function initApp() {
     }
 }
 
-// Setup help section toggle
-function setupHelpSection() {
-    const helpContainer = document.querySelector('.help-container');
-    if (!helpContainer) return;
+// Setup quick help toggle
+function setupQuickHelp() {
+    const quickHelp = document.querySelector('.quick-help');
+    if (!quickHelp) return;
     
     const toggleHelp = () => {
-        helpContainer.classList.toggle('expanded');
+        quickHelp.classList.toggle('expanded');
     };
     
-    helpContainer.addEventListener('click', function(e) {
-        // Only toggle when clicking on header or when collapsed
-        if (!helpContainer.classList.contains('expanded') || e.target.closest('.help-toggle')) {
-            toggleHelp();
-        }
-    });
-    
-    // Add toggle header
-    const helpContent = helpContainer.innerHTML;
-    helpContainer.innerHTML = `
-        <div class="help-toggle">
-            <span><i class="fas fa-question-circle"></i> Hướng dẫn sử dụng</span>
-            <i class="fas fa-chevron-down"></i>
-        </div>
-        <div class="help-content">
-            ${helpContent}
-        </div>
-    `;
+    quickHelp.querySelector('.help-toggle').addEventListener('click', toggleHelp);
 }
 
 // Theme toggle functionality
@@ -130,7 +113,13 @@ function setupSearchForm() {
         e.preventDefault();
         const term = $('searchTerm').value.trim();
         resetSearchState();
-        if (term) searchApp(term);
+        
+        if (!term) {
+            showError('Vui lòng nhập tên ứng dụng, App ID hoặc URL App Store');
+            return;
+        }
+        
+        searchApp(term);
     });
 }
 
