@@ -1219,13 +1219,21 @@ body.dark-mode {
         box-shadow: none;
         gap: 8px;
         height: auto;
+        position: relative; /* thêm dòng này để icon .search-icon bám đúng */
+        align-items: stretch; /* giữ độ rộng 100% */
     }
     
+    .search-icon {
+        left: 16px;
+        top: 12px; /* điều chỉnh icon xuống dưới */
+        transform: none; /* bỏ translateY(-50%) */
+    }
+
     #searchTerm {
         width: 100%;
         height: 48px;
         box-shadow: var(--shadow-sm);
-        padding-left: 42px;
+        padding-left: 42px; /* chừa chỗ cho icon */
     }
     
     .search-button {
