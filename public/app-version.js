@@ -108,17 +108,24 @@ function toggleTheme() {
 function setupSearchForm() {
     const form = $('searchForm');
     if (!form) return;
+
+    const searchError = $('searchError');
     
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         const term = $('searchTerm').value.trim();
-        resetSearchState();
-        
+        setDisplay('error', 'none');
+        if (searchError) searchError.style.display = 'none';
+
         if (!term) {
-            showError('Vui lòng nhập tên ứng dụng, App ID hoặc URL App Store');
+            if (searchError) {
+                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
+                searchError.style.display = 'block';
+            }
             return;
         }
-        
+
+        resetSearchState();
         searchApp(term);
     });
 }
