@@ -610,9 +610,9 @@ function closeModal() {
 // Setup popular apps
 function setupPopularApps() {
     const popularApps = [
-        { id: '284882215', name: 'Facebook', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/19/6b/9e/196b9e0a-5b35-ea3c-a3b9-e1626c4b4e81/AppIcon-1x_U007emarketing-0-7-0-85-220.png/100x100bb.jpg' },
-        { id: '310633997', name: 'WhatsApp', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9f/6d/9d/9f6d9d0a-6f2a-9a5a-6a6a-6a6a6a6a6a6a/AppIcon-0-1x_U007emarketing-0-7-0-85-220.png/100x100bb.jpg' },
-        { id: '389801252', name: 'Instagram', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/05/97/4e/05974e98-1b29-0b19-7f88-1a6b5a7e1d60/Prod-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
+        { id: '284882215', name: 'Facebook', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/db/c7/9f/dbc79f47-9d5b-ca77-1ecc-d3ef0fc92128/Icon-Production-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg' },
+        { id: '310633997', name: 'WhatsApp', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/69/2e/e4/692ee480-dbf0-e730-1328-ce292003fa09/AppIcon-0-0-1x_U007ephone-0-0-0-1-0-0-0-85-220.png/100x100bb.jpg' },
+        { id: '389801252', name: 'Instagram', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/57/57/87/57578709-23d2-5fb2-487b-eff35e3aade4/Prod-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/100x100bb.jpg' },
         { id: '333903271', name: 'Twitter', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
         { id: '545519333', name: 'TikTok', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
         { id: '447188370', name: 'Chrome', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/9a/1b/78/9a1b78e3-9c6b-8e6b-9e6b-9e6b9e6b9e6b/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.png/100x100bb.jpg' },
