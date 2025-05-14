@@ -6,7 +6,7 @@
     <title>AppInfo - Tra cứu ứng dụng iOS</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="app-version.css?v=4.1">
+    <link rel="stylesheet" href="app-version.css?v=4.2">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3905625903416797" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -53,28 +53,26 @@
             </section>
 
             <!-- App Info Section -->
-<section class="app-info-section">
-    <div id="loading" class="loading-container">
-        <div class="loader"></div>
-        <p class="loading-text">Đang tải dữ liệu...</p>
-    </div>
+            <section class="app-info-section">
+                <div id="loading" class="loading-container">
+                    <div class="loader"></div>
+                    <p class="loading-text">Đang tải dữ liệu...</p>
+                </div>
 
-    <div id="error" class="error-message"></div>
+                <div id="error" class="error-message"></div>
 
-    <div id="appInfo" class="app-info-container">
-        <!-- Will be populated by JavaScript -->
-    </div>
+                <div id="appInfo" class="app-info-container">
+                    <!-- Will be populated by JavaScript -->
+                </div>
 
-    <!-- BẮT ĐẦU: Phần bổ sung -->
-    <div id="result" class="search-results-container">
-        <!-- Kết quả tìm kiếm bằng tên sẽ hiển thị ở đây -->
-    </div>
+                <div id="result" class="search-results-container">
+                    <!-- Kết quả tìm kiếm bằng tên sẽ hiển thị ở đây -->
+                </div>
 
-    <div id="pagination" class="pagination-container">
-        <!-- Phân trang phiên bản sẽ hiển thị ở đây -->
-    </div>
-    <!-- KẾT THÚC -->
-</section>
+                <div id="pagination" class="pagination-container">
+                    <!-- Phân trang phiên bản sẽ hiển thị ở đây -->
+                </div>
+            </section>
 
             <!-- Popular Apps Section -->
             <section class="popular-section">
@@ -84,6 +82,73 @@
                 </h2>
                 <div class="apps-grid">
                     <!-- Will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Help Section -->
+            <section class="help-section">
+                <h2 class="section-title">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Hướng dẫn sử dụng</span>
+                </h2>
+                <div class="help-container">
+                    <div class="help-item">
+                        <h3><i class="fas fa-search"></i> Cách tìm kiếm ứng dụng</h3>
+                        <p>Bạn có thể tìm kiếm ứng dụng bằng nhiều cách khác nhau:</p>
+                        
+                        <div class="help-steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Tìm bằng tên ứng dụng</h4>
+                                    <p>Nhập tên ứng dụng vào ô tìm kiếm và nhấn nút "Tìm kiếm". Hệ thống sẽ hiển thị danh sách các ứng dụng phù hợp.</p>
+                                    <div class="example">Ví dụ: Facebook, TikTok, Zalo</div>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>Tìm bằng App ID</h4>
+                                    <p>Nhập ID số của ứng dụng (thường là 9-10 chữ số) để xem thông tin chi tiết ngay lập tức.</p>
+                                    <div class="example">Ví dụ: 284882215 (Facebook), 545519333 (TikTok)</div>
+                                </div>
+                            </div>
+                            
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Tìm bằng URL App Store</h4>
+                                    <p>Dán URL đầy đủ từ App Store vào ô tìm kiếm, hệ thống sẽ tự động trích xuất App ID.</p>
+                                    <div class="example">Ví dụ: https://apps.apple.com/vn/app/facebook/id284882215</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="help-item">
+                        <h3><i class="fas fa-info-circle"></i> Thông tin ứng dụng</h3>
+                        <p>Sau khi tìm thấy ứng dụng, bạn sẽ thấy các thông tin sau:</p>
+                        <ul>
+                            <li>Tên ứng dụng và nhà phát triển</li>
+                            <li>Phiên bản hiện tại và kích thước</li>
+                            <li>Ngày phát hành và đánh giá</li>
+                            <li>Bundle ID (có thể sao chép bằng nút bên cạnh)</li>
+                            <li>Ghi chú cập nhật (nếu có)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="help-item">
+                        <h3><i class="fas fa-history"></i> Lịch sử phiên bản</h3>
+                        <p>Chuyển sang tab "Lịch sử phiên bản" để xem:</p>
+                        <ul>
+                            <li>Tất cả các phiên bản đã phát hành</li>
+                            <li>Ngày phát hành từng phiên bản</li>
+                            <li>Ghi chú cập nhật (nhấn nút "Xem" để đọc)</li>
+                            <li>Phân loại phiên bản (Lớn/Nhỏ/Sửa lỗi)</li>
+                        </ul>
+                        <p>Bạn có thể tìm kiếm phiên bản cụ thể bằng ô tìm kiếm hoặc sử dụng phân trang để xem nhiều kết quả hơn.</p>
+                    </div>
                 </div>
             </section>
 
@@ -171,6 +236,6 @@
         </div>
     </div>
 
-    <script src="app-version.js?v=4.1"></script>
+    <script src="app-version.js?v=4.2"></script>
 </body>
 </html>

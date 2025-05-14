@@ -10,9 +10,9 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Gọi API với timeout 8s
+    // Gọi API với timeout 15s
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
     
     try {
       const response = await fetch(
