@@ -136,7 +136,6 @@ async function searchApp(term) {
             return;
         }
         
-        // Sửa phần này - gọi qua endpoint /api/appInfo thay vì gọi trực tiếp
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('term', term);
         
@@ -165,7 +164,14 @@ async function searchApp(term) {
 
 // Display search results
 function displaySearchResults(apps) {
-    setHTML('appInfo', `
+    const container = $('result') || $('appInfo');
+    
+    if (!container) {
+        console.error('Không tìm thấy container để hiển thị kết quả');
+        return;
+    }
+
+    container.innerHTML = `
         <div class="app-info-tabs">
             <button class="tab-btn active" data-tab="results">Kết quả tìm kiếm</button>
         </div>
@@ -189,8 +195,11 @@ function displaySearchResults(apps) {
                 </div>
             </div>
         </div>
-    `);
+    `;
     
+    container.style.display = 'block';
+    
+    // Thêm sự kiện click cho các kết quả tìm kiếm
     document.querySelectorAll('.app-item').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
