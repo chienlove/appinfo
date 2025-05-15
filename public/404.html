@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 - Không tìm thấy trang</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 120px;
+      font-weight: 900;
+      letter-spacing: 5px;
+      margin-bottom: 20px;
+      animation: fadeInDown 1s ease-out;
+    }
+
+    h2 {
+      font-size: 32px;
+      margin-bottom: 15px;
+      animation: fadeInUp 1.2s ease-out;
+    }
+
+    p {
+      font-size: 18px;
+      max-width: 500px;
+      margin-bottom: 30px;
+      animation: fadeInUp 1.4s ease-out;
+    }
+
+    a {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #ffffff;
+      color: #2a5298;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+      animation: fadeInUp 1.6s ease-out;
+    }
+
+    a:hover {
+      background-color: #ddd;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 72px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>404</h1>
+  <h2>Trang không tồn tại</h2>
+  <p>Rất tiếc, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển. Vui lòng kiểm tra lại đường dẫn hoặc quay về trang chủ.</p>
+  <a href="/">Về trang chủ</a>
+</body>
+</html>
