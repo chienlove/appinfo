@@ -192,40 +192,28 @@ async function searchApp(term) {
 // Display search results
 function displaySearchResults(apps) {
     const container = $('result');
-    
-    if (!container) {
-        console.error('Không tìm thấy container để hiển thị kết quả');
-        return;
-    }
+    if (!container) return;
 
     container.innerHTML = `
         <div class="search-results">
             <h3>Tìm thấy ${apps.length} ứng dụng</h3>
-            <div class="apps-list">
+            <div class="apps-grid">
                 ${apps.map(app => `
-                    <div class="app-item" data-appid="${app.trackId}">
+                    <div class="app-card" data-appid="${app.trackId}">
                         <img src="${app.artworkUrl100.replace('100x100bb', '200x200bb')}" 
                              alt="${sanitizeHTML(app.trackName)}" 
                              class="app-icon">
-                        <div class="app-details">
-                            <h4>${sanitizeHTML(app.trackName)}</h4>
-                            <p>${sanitizeHTML(app.artistName)}</p>
-                            <div class="app-meta">
-                                <span>${sanitizeHTML(app.version || 'Phiên bản không rõ')}</span>
-                                <span>• ${app.primaryGenreName || 'Không rõ thể loại'}</span>
-                            </div>
-                        </div>
-                        <i class="fas fa-chevron-right"></i>
+                        <div class="app-name">${sanitizeHTML(app.trackName)}</div>
                     </div>
                 `).join('')}
             </div>
         </div>
     `;
-    
+
     container.style.display = 'block';
-    
-    // Add click event for search results
-    document.querySelectorAll('.app-item').forEach(item => {
+
+    // Click để lấy chi tiết app
+    document.querySelectorAll('.app-card').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
             resetSearchState();
