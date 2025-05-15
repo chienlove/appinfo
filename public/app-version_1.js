@@ -470,7 +470,10 @@ function renderVersions(searchTerm = '') {
     const displayVersions = searchTerm ? filteredVersions : versions.slice(start, end);
 
     if (displayVersions.length === 0) {
-        setHTML('versions-content', '<p class="no-versions">Không có dữ liệu phiên bản</p>');
+        const message = searchTerm
+        ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
+        : 'Không có dữ liệu phiên bản';
+    setHTML('versions-content', `<p class="no-versions">${message}</p>`);
         setHTML('pagination', '');
         return;
     }
@@ -482,8 +485,13 @@ function renderVersions(searchTerm = '') {
             <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
         </h3>
         <div class="versions-controls">
-            <input type="text" id="version-search" class="version-search"
-                   placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+            <form id="versionSearchForm" class="version-search-form">
+    <input type="text" id="version-search" class="version-search"
+           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+    <button type="submit" class="version-search-button">
+        <i class="fas fa-search"></i> Tìm kiếm
+    </button>
+</form>
         </div>
     </div>
         <div class="versions-scroll-container">
@@ -529,14 +537,12 @@ if (!searchTerm) {
 }
 
     // Setup tìm kiếm
-    const searchInput = document.getElementById('version-search');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        const value = e.target.value.trim();
-        searchTimeout = setTimeout(() => {
-            renderVersions(value);
-        }, 300); // chờ 300ms sau khi người dùng dừng gõ
+    const versionForm = document.getElementById('versionSearchForm');
+if (versionForm) {
+    versionForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const value = document.getElementById('version-search').value.trim();
+        renderVersions(value);
     });
 }
 

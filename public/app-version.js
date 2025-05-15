@@ -31,6 +31,7 @@ function showError(message) {
     setHTML('error', `<i class="fas fa-exclamation-circle"></i> ${message}`);
     setDisplay('error', 'block');
     setDisplay('loading', 'none');
+    setDisplay('appInfoSkeleton', 'none');
 }
 
 function extractAppIdFromUrl(url) {
@@ -62,6 +63,10 @@ function initApp() {
         adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
+    
+    // Auto focus search input
+    const searchInput = $('searchTerm');
+    if (searchInput) searchInput.focus();
 }
 
 // Setup quick help toggle
@@ -111,11 +116,22 @@ function setupSearchForm() {
     if (!form) return;
 
     const searchError = $('searchError');
+    const searchInput = $('searchTerm');
+    
+    // Focus effect
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
+    });
+    
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.style.boxShadow = '';
+    });
     
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const term = $('searchTerm').value.trim();
+        const term = searchInput.value.trim();
         setDisplay('error', 'none');
+        setDisplay('noResults', 'none');
         if (searchError) searchError.style.display = 'none';
 
         if (!term) {
@@ -134,12 +150,17 @@ function setupSearchForm() {
 function resetSearchState() {
     setDisplay('loading', 'flex');
     setDisplay('error', 'none');
+    setDisplay('noResults', 'none');
     setDisplay('appInfo', 'none');
+    setDisplay('appInfoSkeleton', 'block');
     setDisplay('result', 'none');
     versions = [];
     currentPage = 1;
     currentAppId = null;
     activeTab = 'info';
+    
+    // Update breadcrumb
+    setHTML('currentPage', 'Đang tìm kiếm...');
 }
 
 // Check URL for app ID on page load
@@ -156,6 +177,7 @@ function checkUrlForAppId() {
 async function searchApp(term) {
     try {
         setDisplay('loading', 'flex');
+        setDisplay('appInfoSkeleton', 'block');
         const appIdFromUrl = extractAppIdFromUrl(term);
         
         if (appIdFromUrl) {
@@ -178,6 +200,15 @@ async function searchApp(term) {
         
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
+            setDisplay('noResults', 'flex');
+            setDisplay('loading', 'none');
+            setDisplay('appInfoSkeleton', 'none');
+            
+            // Setup retry button
+            document.querySelector('.retry-button')?.addEventListener('click', () => {
+                searchApp(term);
+            });
+            
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
         
@@ -212,6 +243,10 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
+    setDisplay('appInfoSkeleton', 'none');
+    
+    // Update breadcrumb
+    setHTML('currentPage', 'Kết quả tìm kiếm');
 
     // Click để lấy chi tiết app
     document.querySelectorAll('.app-card').forEach(item => {
@@ -228,6 +263,7 @@ function displaySearchResults(apps) {
 async function fetchAppInfo(appId) {
     try {
         setDisplay('loading', 'flex');
+        setDisplay('appInfoSkeleton', 'block');
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('id', appId);
         
@@ -248,11 +284,15 @@ async function fetchAppInfo(appId) {
         displayAppInfo(data.results[0]);
         currentAppId = appId;
         updateUrlWithAppId(appId);
+        
+        // Update breadcrumb
+        setHTML('currentPage', data.results[0]?.trackName || 'Chi tiết ứng dụng');
     } catch (error) {
         console.error('fetchAppInfo Error:', error);
         showError(`Không tải được thông tin ứng dụng: ${error.message}`);
     } finally {
         setDisplay('loading', 'none');
+        setDisplay('appInfoSkeleton', 'none');
     }
 }
 
@@ -381,8 +421,10 @@ function displayAppInfo(app) {
                 navigator.clipboard.writeText(text);
                 const originalHTML = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i><span>Đã sao chép</span>';
+                btn.style.backgroundColor = '#4CAF50';
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
+                    btn.style.backgroundColor = '';
                 }, 2000);
             }
         });
