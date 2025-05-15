@@ -265,6 +265,7 @@ body {
 
 .quick-help.expanded .help-content {
     max-height: 500px;
+    overflow-y: auto;
 }
 
 .help-steps {
