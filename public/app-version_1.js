@@ -455,30 +455,22 @@ async function fetchVersions(appId) {
     }
 }
 
-function renderVersions(searchTerm = '') {
-    let filteredVersions = versions;
-
-    if (searchTerm) {
-        filteredVersions = versions.filter(v =>
-            v.bundle_version?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }
-
+function renderVersions() {
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
-    const displayVersions = searchTerm ? filteredVersions : versions.slice(start, end);
-
-    if (displayVersions.length === 0) {
+    const paginatedVersions = versions.slice(start, end);
+    
+    if (versions.length === 0) {
         setHTML('versions-content', '<p class="no-versions">Không có dữ liệu phiên bản</p>');
         setHTML('pagination', '');
         return;
     }
-
+    
     const versionsHTML = `
         <div class="versions-header">
             <h3>
                 <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+                <span>Lịch sử Phiên bản (${versions.length})</span>
             </h3>
             <div class="versions-controls">
                 <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản...">
@@ -495,7 +487,7 @@ function renderVersions(searchTerm = '') {
                     </tr>
                 </thead>
                 <tbody>
-                    ${displayVersions.map(version => `
+                    ${paginatedVersions.map(version => `
                         <tr>
                             <td class="version-col">
                                 ${sanitizeHTML(version.bundle_version || 'N/A')}
@@ -517,19 +509,25 @@ function renderVersions(searchTerm = '') {
             </table>
         </div>
     `;
-
+    
     setHTML('versions-content', versionsHTML);
-    setHTML('pagination', searchTerm ? '' : renderPaginationHTML());
-
-    // Setup tìm kiếm
+    renderPagination();
+    
+    // Setup version search
     const searchInput = document.getElementById('version-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            renderVersions(e.target.value.trim());
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.versions-table tbody tr');
+            
+            rows.forEach(row => {
+                const versionText = row.querySelector('.version-col').textContent.toLowerCase();
+                row.style.display = versionText.includes(term) ? '' : 'none';
+            });
         });
     }
-
-    // Setup view notes
+    
+    // Setup view notes buttons
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const notes = btn.dataset.notes;
