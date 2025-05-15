@@ -475,17 +475,16 @@ function renderVersions(searchTerm = '') {
     }
 
     const versionsHTML = `
-        <div class="versions-header">
-            <h3>
-                <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
-            </h3>
-            <div class="versions-controls">
-                <div class="versions-controls">
-    <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
-</div>
-            </div>
+    <div class="versions-header">
+        <h3>
+            <i class="fas fa-history"></i>
+            <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+        </h3>
+        <div class="versions-controls">
+            <input type="text" id="version-search" class="version-search"
+                   placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
         </div>
+    </div>
         <div class="versions-scroll-container">
             <table class="versions-table">
                 <thead>
