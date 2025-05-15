@@ -519,7 +519,12 @@ function renderVersions(searchTerm = '') {
     `;
 
     setHTML('versions-content', versionsHTML);
-    setHTML('pagination', searchTerm ? '' : renderPaginationHTML());
+
+if (!searchTerm) {
+    renderPagination();
+} else {
+    setHTML('pagination', '');
+}
 
     // Setup tìm kiếm
     const searchInput = document.getElementById('version-search');
