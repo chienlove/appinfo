@@ -3,6 +3,7 @@ const perPage = 15;
 let versions = [];
 let currentAppId = null;
 let activeTab = 'info';
+let searchTimeout;
 
 // DOM Utilities
 const $ = (id) => document.getElementById(id);
@@ -455,27 +456,36 @@ async function fetchVersions(appId) {
     }
 }
 
-function renderVersions() {
+function renderVersions(searchTerm = '') {
+    let filteredVersions = versions;
+
+    if (searchTerm) {
+        filteredVersions = versions.filter(v =>
+            v.bundle_version?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
-    const paginatedVersions = versions.slice(start, end);
-    
-    if (versions.length === 0) {
+    const displayVersions = searchTerm ? filteredVersions : versions.slice(start, end);
+
+    if (displayVersions.length === 0) {
         setHTML('versions-content', '<p class="no-versions">Không có dữ liệu phiên bản</p>');
         setHTML('pagination', '');
         return;
     }
-    
+
     const versionsHTML = `
-        <div class="versions-header">
-            <h3>
-                <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản (${versions.length})</span>
-            </h3>
-            <div class="versions-controls">
-                <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản...">
-            </div>
+    <div class="versions-header">
+        <h3>
+            <i class="fas fa-history"></i>
+            <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+        </h3>
+        <div class="versions-controls">
+            <input type="text" id="version-search" class="version-search"
+                   placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
         </div>
+    </div>
         <div class="versions-scroll-container">
             <table class="versions-table">
                 <thead>
@@ -487,7 +497,7 @@ function renderVersions() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${paginatedVersions.map(version => `
+                    ${displayVersions.map(version => `
                         <tr>
                             <td class="version-col">
                                 ${sanitizeHTML(version.bundle_version || 'N/A')}
@@ -509,25 +519,28 @@ function renderVersions() {
             </table>
         </div>
     `;
-    
+
     setHTML('versions-content', versionsHTML);
+
+if (!searchTerm) {
     renderPagination();
-    
-    // Setup version search
+} else {
+    setHTML('pagination', '');
+}
+
+    // Setup tìm kiếm
     const searchInput = document.getElementById('version-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('.versions-table tbody tr');
-            
-            rows.forEach(row => {
-                const versionText = row.querySelector('.version-col').textContent.toLowerCase();
-                row.style.display = versionText.includes(term) ? '' : 'none';
-            });
-        });
-    }
-    
-    // Setup view notes buttons
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const value = e.target.value.trim();
+        searchTimeout = setTimeout(() => {
+            renderVersions(value);
+        }, 300); // chờ 300ms sau khi người dùng dừng gõ
+    });
+}
+
+    // Setup view notes
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const notes = btn.dataset.notes;
