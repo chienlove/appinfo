@@ -481,7 +481,9 @@ function renderVersions(searchTerm = '') {
                 <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
             </h3>
             <div class="versions-controls">
-                <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản...">
+                <div class="versions-controls">
+    <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+</div>
             </div>
         </div>
         <div class="versions-scroll-container">
@@ -528,11 +530,15 @@ if (!searchTerm) {
 
     // Setup tìm kiếm
     const searchInput = document.getElementById('version-search');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            renderVersions(e.target.value.trim());
-        });
-    }
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const value = e.target.value.trim();
+        searchTimeout = setTimeout(() => {
+            renderVersions(value);
+        }, 300); // chờ 300ms sau khi người dùng dừng gõ
+    });
+}
 
     // Setup view notes
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
