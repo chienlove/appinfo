@@ -3,6 +3,7 @@ const perPage = 15;
 let versions = [];
 let currentAppId = null;
 let activeTab = 'info';
+let searchTimeout;
 
 // DOM Utilities
 const $ = (id) => document.getElementById(id);
