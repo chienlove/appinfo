@@ -160,6 +160,9 @@ function setupSearchForm() {
 
         resetSearchState();
         searchApp(term);
+      if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
+}
     });
 
     $('searchTerm').addEventListener('input', function () {
@@ -184,6 +187,9 @@ function setupSearchForm() {
 
             resetSearchState();
             searchApp(term);
+          if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
+}
         }, 800);
     });
 }
