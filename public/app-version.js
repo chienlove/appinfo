@@ -128,49 +128,50 @@ function setupSearchForm() {
     });
 
     form.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        const term = searchInput.value.trim();
-        if (!term) {
-            if (searchError) {
-                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-                searchError.style.display = 'block';
-            }
-            return;
+    const term = searchInput.value.trim();
+    if (!term) {
+        if (searchError) {
+            searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
+            searchError.style.display = 'block';
         }
+        return;
+    }
 
-        // Kiểm tra xác thực Turnstile
-        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-        if (!token) {
-            showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
-            return;
-        }
+    // Kiểm tra xác thực Turnstile
+    const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+    if (!token) {
+        showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
+        return;
+    }
 
-        // Hiển thị loading
-        resetSearchState();
+    // Hiển thị loading
+    resetSearchState();
+    
+    try {
+        // Gửi xác thực Turnstile
+        const formData = new FormData();
+        formData.append('cf-turnstile-response', token);
         
-        try {
-            // Gửi xác thực Turnstile
-            const formData = new FormData(form);
-            const res = await fetch('/api/verify-turnstile', {
-                method: 'POST',
-                body: formData
-            });
+        const res = await fetch('/api/verify-turnstile', {
+            method: 'POST',
+            body: formData
+        });
 
-            const result = await res.json();
-            if (!result.success) {
-                showError("Xác thực thất bại. Vui lòng thử lại.");
-                return;
-            }
-
-            // Nếu xác thực thành công, tiến hành tìm kiếm
-            await searchApp(term);
-        } catch (error) {
-            console.error('Xác thực lỗi:', error);
-            showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
+        const result = await res.json();
+        if (!result.success) {
+            showError("Xác thực thất bại. Vui lòng thử lại.");
+            return;
         }
-    });
-}
+
+        // Nếu xác thực thành công, tiến hành tìm kiếm
+        await searchApp(term);
+    } catch (error) {
+        console.error('Xác thực lỗi:', error);
+        showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
+    }
+});
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
