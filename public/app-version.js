@@ -243,6 +243,22 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
+    // Scroll to result block
+    const resultBlock = $('result');
+    if (resultBlock) {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Hiển thị quảng cáo sau 3 giây nếu có
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'none');
+    setTimeout(() => {
+        adBanners.forEach(ad => ad.style.display = 'block');
+    }, 3000);
+
+    // Hiển thị toast thông báo số kết quả
+    showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
+
     setDisplay('appInfoSkeleton', 'none');
     
     // Update breadcrumb
@@ -741,3 +757,31 @@ function setupPopularApps() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
+// Hiển thị toast nhỏ thông báo
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
+}
