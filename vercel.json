@@ -14,31 +14,38 @@
     {
       "src": "/api/getAppVersions",
       "dest": "/api/getAppVersions.js",
-      "methods": ["GET"],
+      "methods": ["GET", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
         "Content-Type": "application/json"
       }
     },
     {
       "src": "/api/appInfo",
       "dest": "/api/appInfo.js",
-      "methods": ["GET"],
+      "methods": ["GET", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json"
       }
     },
     {
       "src": "/api/verify-turnstile",
       "dest": "/api/verify-turnstile.js",
-      "methods": ["POST"],  
+      "methods": ["POST", "OPTIONS"],  
       "headers": {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
         "Content-Type": "application/json"
       }
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/api/(.*)",
