@@ -45,7 +45,7 @@
                     <h1>Khám phá mọi thông tin ứng dụng iOS</h1>
                     <p>Tìm kiếm thông tin chi tiết, lịch sử phiên bản và hơn thế nữa</p>
                     
-                    <form id="searchForm" class="search-form" onsubmit="return handleSubmit(event)">
+                    <form id="searchForm" class="search-form">
                         <div class="search-input-group">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="searchTerm" 
@@ -58,7 +58,7 @@
                         <div id="searchError" class="error-message" style="display: none; margin-top: 8px;">
                             Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.
                         </div>
-                      <div class="cf-turnstile" data-sitekey="0x4AAAAAABdbzXYVaBJR7Vav" data-callback="onTurnstileSuccess" data-action="search" id="cf-turnstile"></div>
+                      <div class="cf-turnstile" data-sitekey="0x4AAAAAABdbzXYVaBJR7Vav" name="cf-turnstile-response"></div>
                     </form>
 
                     <!-- Breadcrumb -->
@@ -304,56 +304,6 @@
 
     <script src="app-version.js?v=4.4"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
-    <script>
-    let turnstileToken = '';
-
-    function onTurnstileSuccess(token) {
-        turnstileToken = token;
-    }
-
-    async function handleSubmit(event) {
-        event.preventDefault();
-        
-        const searchTerm = document.getElementById('searchTerm').value.trim();
-        
-        if (!searchTerm) {
-            document.getElementById('searchError').style.display = 'block';
-            return;
-        } else {
-            document.getElementById('searchError').style.display = 'none';
-        }
-
-        if (!turnstileToken) {
-            alert("Vui lòng xác thực bằng Turnstile trước khi gửi.");
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/verify-turnstile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    'cf-turnstile-response': turnstileToken,
-                    'searchTerm': searchTerm
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                alert("Xác thực thành công!");
-            } else {
-                alert("Xác thực thất bại: " + (data.details || "Lỗi không xác định"));
-            }
-        } catch (error) {
-            console.error("Error verifying Turnstile:", error);
-            alert("Lỗi xác thực. Vui lòng thử lại sau.");
-        }
-    }
-    </script>
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-
 
 <script>
 let turnstileToken = '';
