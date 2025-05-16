@@ -119,7 +119,7 @@ function setupSearchForm() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const term = $('searchTerm').value.trim();
-        const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
 
         const showSearchError = (msg) => {
             const errBox = $('searchError');
@@ -166,7 +166,7 @@ function setupSearchForm() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
             const term = this.value.trim();
-            const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
 
             if (!term || !token) return;
 
