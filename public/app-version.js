@@ -54,8 +54,8 @@ function extractAppIdFromUrl(url) {
 function initApp() {
     setupThemeToggle();
     setupSearchForm();
-    setupPopularApps();
     setupQuickHelp();
+    setupPopularApps();
     checkUrlForAppId();
     
     // Load ads
@@ -74,7 +74,8 @@ function setupQuickHelp() {
     const quickHelp = document.querySelector('.quick-help');
     if (!quickHelp) return;
     
-    const toggleHelp = () => {
+    const toggleHelp = (e) => {
+        e.preventDefault();
         quickHelp.classList.toggle('expanded');
     };
     
@@ -111,84 +112,63 @@ function toggleTheme() {
 }
 
 // Search functionality
-
-
 function setupSearchForm() {
-  const form = document.getElementById('searchForm');
-  const searchInput = document.getElementById('searchTerm');
-  const searchError = document.getElementById('searchError');
+    const form = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchTerm');
+    const searchError = document.getElementById('searchError');
 
-  if (!form || !searchInput) return;
+    if (!form || !searchInput) return;
 
-  searchInput.addEventListener('focus', () => {
-    searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
-  });
-
-  searchInput.addEventListener('blur', () => {
-    searchInput.parentElement.style.boxShadow = '';
-  });
-
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const term = searchInput.value.trim();
-    if (!term) {
-      if (searchError) {
-        searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-        searchError.style.display = 'block';
-      }
-      return;
-    }
-
-    const token = form.querySelector('input[name="cf-turnstile-response"]')?.value;
-    if (!token) {
-      alert("Vui lòng xác thực trước khi tìm kiếm.");
-      return;
-    }
-
-    const formData = new FormData(form);
-    const res = await fetch('/api/verify-turnstile', {
-      method: 'POST',
-      body: formData
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
     });
 
-    const result = await res.json();
-    if (!result.success) {
-      alert("Xác thực thất bại. Vui lòng thử lại.");
-      return;
-    }
-
-    resetSearchState();
-    searchApp(term);
-  });
-}
-
-      return;
-    }
-
-    // Gửi xác thực Turnstile
-    const formData = new FormData(form);
-    const res = await fetch('/api/verify-turnstile', {
-      method: 'POST',
-      body: formData
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.style.boxShadow = '';
     });
 
-    const result = await res.json();
-    if (!result.success) {
-      alert("Xác thực thất bại. Vui lòng thử lại.");
-      return;
-    }
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
 
-    resetSearchState();
-    searchApp(term);
-  });
-}
-
+        const term = searchInput.value.trim();
+        if (!term) {
+            if (searchError) {
+                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
+                searchError.style.display = 'block';
+            }
             return;
         }
 
+        // Kiểm tra xác thực Turnstile
+        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+        if (!token) {
+            showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
+            return;
+        }
+
+        // Hiển thị loading
         resetSearchState();
-        searchApp(term);
+        
+        try {
+            // Gửi xác thực Turnstile
+            const formData = new FormData(form);
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                showError("Xác thực thất bại. Vui lòng thử lại.");
+                return;
+            }
+
+            // Nếu xác thực thành công, tiến hành tìm kiếm
+            await searchApp(term);
+        } catch (error) {
+            console.error('Xác thực lỗi:', error);
+            showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
+        }
     });
 }
 
@@ -802,8 +782,6 @@ function setupPopularApps() {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', initApp);
 // Hiển thị toast nhỏ thông báo
 function showToast(message) {
     let toast = document.getElementById('toast');
@@ -832,3 +810,6 @@ function showToast(message) {
         toast.style.opacity = '0';
     }, 2500);
 }
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
