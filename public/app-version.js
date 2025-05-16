@@ -116,10 +116,6 @@ function setupSearchForm() {
     const form = $('searchForm');
     if (!form) return;
 
-    function setupSearchForm() {
-    const form = $('searchForm');
-    if (!form) return;
-
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const term = $('searchTerm').value.trim();
@@ -166,7 +162,6 @@ function setupSearchForm() {
         searchApp(term);
     });
 
-    // Setup debounced search
     $('searchTerm').addEventListener('input', function () {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
