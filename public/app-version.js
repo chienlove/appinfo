@@ -41,13 +41,43 @@ function extractAppIdFromUrl(url) {
         /\/id(\d+)/i,
         /\/app\/[^\/]+\/id(\d+)/i,
         /[?&]id=(\d+)/i,
-        /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/(\d+)/i
+        /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/(\d+)/i,
+        /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/id(\d+)/i
     ];
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match && match[1]) return match[1];
     }
     return null;
+}
+
+// Hiển thị toast nhỏ thông báo
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
 }
 
 // Initialize the app
@@ -59,9 +89,8 @@ function initApp() {
     checkUrlForAppId();
     
     // Load ads
-    if (typeof adsbygoogle !== 'undefined') {
-        adsbygoogle = window.adsbygoogle || [];
-        adsbygoogle.push({});
+    if (window.adsbygoogle) {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
     }
     
     // Auto focus search input
@@ -112,49 +141,28 @@ function toggleTheme() {
 
 // Search functionality
 function setupSearchForm() {
-  const form = document.getElementById('searchForm');
-  const searchInput = document.getElementById('searchTerm');
-  const searchError = document.getElementById('searchError');
+    const form = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchTerm');
+    const searchError = document.getElementById('searchError');
 
-  if (!form || !searchInput) return;
+    if (!form || !searchInput) return;
 
-  searchInput.addEventListener('focus', () => {
-    searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
-  });
-
-  searchInput.addEventListener('blur', () => {
-    searchInput.parentElement.style.boxShadow = '';
-  });
-
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-
-    const term = searchInput.value.trim();
-    if (!term) {
-      if (searchError) {
-        searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-        searchError.style.display = 'block';
-      }
-      return;
-    }
-
-    // Gửi xác thực Turnstile
-    const formData = new FormData(form);
-    const res = await fetch('/api/verify-turnstile', {
-      method: 'POST',
-      body: formData
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
     });
 
-    const result = await res.json();
-    if (!result.success) {
-      alert("Xác thực thất bại. Vui lòng thử lại.");
-      return;
-    }
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.style.boxShadow = '';
+    });
 
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
         const term = searchInput.value.trim();
+        
         setDisplay('error', 'none');
         setDisplay('noResults', 'none');
         if (searchError) searchError.style.display = 'none';
+
         if (!term) {
             if (searchError) {
                 searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
@@ -162,20 +170,17 @@ function setupSearchForm() {
             }
             return;
         }
-        resetSearchState();
-        searchApp(term);
-    });
-        e.preventDefault();
-        const term = searchInput.value.trim();
-        setDisplay('error', 'none');
-        setDisplay('noResults', 'none');
-        if (searchError) searchError.style.display = 'none';
 
-        if (!term) {
-            if (searchError) {
-                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-                searchError.style.display = 'block';
-            }
+        // Gửi xác thực Turnstile
+        const formData = new FormData(form);
+        const res = await fetch('/api/verify-turnstile', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await res.json();
+        if (!result.success) {
+            alert("Xác thực thất bại. Vui lòng thử lại.");
             return;
         }
 
@@ -283,12 +288,7 @@ function displaySearchResults(apps) {
     // Scroll to result block
     const resultBlock = $('result');
     if (resultBlock) {
-        const firstCard = resultBlock.querySelector('.app-card');
-    if (firstCard) {
-        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
         resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
     }
 
     // Hiển thị quảng cáo ngay lập tức
@@ -568,29 +568,29 @@ function renderVersions(searchTerm = '') {
 
     if (displayVersions.length === 0) {
         const message = searchTerm
-        ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
-        : 'Không có dữ liệu phiên bản';
-    setHTML('versions-content', `<p class="no-versions">${message}</p>`);
+            ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
+            : 'Không có dữ liệu phiên bản';
+        setHTML('versions-content', `<p class="no-versions">${message}</p>`);
         setHTML('pagination', '');
         return;
     }
 
     const versionsHTML = `
-    <div class="versions-header">
-        <h3>
-            <i class="fas fa-history"></i>
-            <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
-        </h3>
-        <div class="versions-controls">
-            <form id="versionSearchForm" class="version-search-form">
-    <input type="text" id="version-search" class="version-search"
-           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
-    <button type="submit" class="version-search-button">
-        <i class="fas fa-search"></i>
-    </button>
-</form>
+        <div class="versions-header">
+            <h3>
+                <i class="fas fa-history"></i>
+                <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+            </h3>
+            <div class="versions-controls">
+                <form id="versionSearchForm" class="version-search-form">
+                    <input type="text" id="version-search" class="version-search"
+                           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+                    <button type="submit" class="version-search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
         <div class="versions-scroll-container">
             <table class="versions-table">
                 <thead>
@@ -627,21 +627,21 @@ function renderVersions(searchTerm = '') {
 
     setHTML('versions-content', versionsHTML);
 
-if (!searchTerm) {
-    renderPagination();
-} else {
-    setHTML('pagination', '');
-}
+    if (!searchTerm) {
+        renderPagination();
+    } else {
+        setHTML('pagination', '');
+    }
 
     // Setup tìm kiếm
     const versionForm = document.getElementById('versionSearchForm');
-if (versionForm) {
-    versionForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const value = document.getElementById('version-search').value.trim();
-        renderVersions(value);
-    });
-}
+    if (versionForm) {
+        versionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const value = document.getElementById('version-search').value.trim();
+            renderVersions(value);
+        });
+    }
 
     // Setup view notes
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
@@ -775,7 +775,7 @@ function setupPopularApps() {
         { id: 'id284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/cf/2f/52/cf2f5243-39c3-8d39-4775-f8cd1453ecfe/logo_maps_ios_color-0-1x_U007emarketing-0-0-0-7-0-0-0-0-85-220-0.png/100x100bb.jpg' }
     ];
     
-    const appsGrid = document.querySelector('.apps-grid');
+    const appsGrid = document.querySelector('.popular-apps .apps-grid');
     if (appsGrid) {
         appsGrid.innerHTML = popularApps.map(app => `
             <div class="app-card" data-appid="${app.id}">
@@ -784,11 +784,13 @@ function setupPopularApps() {
             </div>
         `).join('');
         
-        document.querySelectorAll('.app-card').forEach(card => {
+        document.querySelectorAll('.popular-apps .app-card').forEach(card => {
             card.addEventListener('click', function() {
                 const appId = this.getAttribute('data-appid').replace('id', '');
                 $('searchTerm').value = appId;
-                $('searchForm').dispatchEvent(new Event('submit'));
+                resetSearchState();
+                fetchAppInfo(appId);
+                fetchVersions(appId);
             });
         });
     }
@@ -796,31 +798,3 @@ function setupPopularApps() {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
-// Hiển thị toast nhỏ thông báo
-function showToast(message) {
-    let toast = document.getElementById('toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'toast';
-        toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
-        toast.style.color = 'white';
-        toast.style.padding = '10px 16px';
-        toast.style.borderRadius = '8px';
-        toast.style.fontSize = '14px';
-        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
-        toast.style.zIndex = '9999';
-        toast.style.transition = 'opacity 0.3s ease';
-        document.body.appendChild(toast);
-    }
-
-    toast.textContent = message;
-    toast.style.opacity = '1';
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-    }, 2500);
-}
