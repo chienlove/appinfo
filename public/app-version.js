@@ -112,7 +112,7 @@ function toggleTheme() {
 }
 
 // Search functionality
-/ <-- Thêm dòng này để đóng hàm setupSearchForm()
+// <-- Thêm dòng này để đóng hàm setupSearchForm()
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
