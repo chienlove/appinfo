@@ -112,7 +112,31 @@ function toggleTheme() {
 }
 
 // Search functionality
-// <-- Thêm dòng này để đóng hàm setupSearchForm()
+function setupSearchForm() {
+    const form = $('searchForm');
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const term = $('searchTerm').value.trim();
+        if (!term) return;
+
+        resetSearchState();
+        searchApp(term);
+    });
+
+    // Setup debounced search
+    $('searchTerm').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            const term = this.value.trim();
+            if (term) {
+                resetSearchState();
+                searchApp(term);
+            }
+        }, 800);
+    });
+}
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
@@ -442,7 +466,7 @@ async function fetchVersions(appId) {
                 signal: controller.signal
             });
             
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
@@ -458,7 +482,7 @@ async function fetchVersions(appId) {
             versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             renderVersions();
         } catch (fetchError) {
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
                 console.log('Sử dụng dữ liệu mẫu do timeout');
                 // Use sample data if API timeout
