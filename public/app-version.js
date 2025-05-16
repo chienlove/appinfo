@@ -186,8 +186,6 @@ function setupSearchForm() {
             console.error('Xác thực lỗi:', error);
             showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
         }
-    });
-}
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
