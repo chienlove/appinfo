@@ -246,15 +246,16 @@ function displaySearchResults(apps) {
     // Scroll to result block
     const resultBlock = $('result');
     if (resultBlock) {
-        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+        const firstCard = resultBlock.querySelector('.app-card');
+if (firstCard) {
+    firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+} else {
+    resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
     // Hiển thị quảng cáo sau 3 giây nếu có
-    const adBanners = document.querySelectorAll('.ads-container');
-    adBanners.forEach(ad => ad.style.display = 'none');
-    setTimeout(() => {
-        adBanners.forEach(ad => ad.style.display = 'block');
-    }, 3000);
+    const adBanners = const adBanners = document.querySelectorAll('.ads-container');
+adBanners.forEach(ad => ad.style.display = 'block');
 
     // Hiển thị toast thông báo số kết quả
     showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
@@ -547,7 +548,7 @@ function renderVersions(searchTerm = '') {
     <input type="text" id="version-search" class="version-search"
            placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
     <button type="submit" class="version-search-button">
-        <i class="fas fa-search"></i> Tìm kiếm
+        <i class="fas fa-search"></i>
     </button>
 </form>
         </div>
