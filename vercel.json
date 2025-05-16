@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "api/*.js",
-      "use": "@vercel/node@3.0.0"
+      "use": "@vercel/node"
     },
     {
       "src": "public/**",
@@ -13,43 +13,18 @@
   "routes": [
     {
       "src": "/api/getAppVersions",
-      "dest": "/api/getAppVersions.js",
-      "methods": ["GET", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-      }
+      "dest": "/api/getAppVersions.js"
     },
     {
       "src": "/api/appInfo",
-      "dest": "/api/appInfo.js",
-      "methods": ["GET", "OPTIONS"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-      }
+      "dest": "/api/appInfo.js"
     },
     {
       "src": "/api/verify-turnstile",
-      "dest": "/api/verify-turnstile.js",
-      "methods": ["POST", "OPTIONS"],  
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Content-Type": "application/json"
-      }
+      "dest": "/api/verify-turnstile.js"
     },
     {
       "handle": "filesystem"
-    },
-    {
-      "src": "/api/(.*)",
-      "status": 404
     },
     {
       "src": "/(.*)",
