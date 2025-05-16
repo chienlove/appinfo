@@ -31,6 +31,15 @@
       }
     },
     {
+      "src": "/api/verify-turnstile",
+      "dest": "/api/verify-turnstile.js",
+      "methods": ["GET"],
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
+      }
+    },
+    {
       "src": "/api/(.*)",
       "status": 404
     },
