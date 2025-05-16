@@ -116,14 +116,51 @@ function setupSearchForm() {
     const form = $('searchForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const term = $('searchTerm').value.trim();
-        if (!term) return;
+    form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const term = $('searchTerm').value.trim();
+    const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
 
-        resetSearchState();
-        searchApp(term);
-    });
+    const showSearchError = (msg) => {
+        const errBox = $('searchError');
+        if (errBox) {
+            errBox.innerHTML = msg;
+            errBox.style.display = 'block';
+        }
+    };
+
+    $('searchError').style.display = 'none';
+
+    if (!term) {
+        showSearchError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
+        return;
+    }
+
+    if (!token) {
+        showSearchError('Vui lòng xác minh bạn không phải robot (Turnstile).');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/verify-turnstile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'cf-turnstile-response': token })
+        });
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+            showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
+            return;
+        }
+    } catch (err) {
+        showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
+        return;
+    }
+
+    resetSearchState();
+    searchApp(term);
+});
 
     // Setup debounced search
     $('searchTerm').addEventListener('input', function() {
