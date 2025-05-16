@@ -159,12 +159,9 @@ function setupSearchForm() {
         }
 
         resetSearchState();
-searchApp(term);
-
-if (typeof turnstile !== 'undefined') {
-    setTimeout(() => {
-        turnstile.reset();
-    }, 1500); // 1500ms = 1.5 giây
+        searchApp(term);
+      if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
 }
     });
 
@@ -189,12 +186,9 @@ if (typeof turnstile !== 'undefined') {
             }
 
             resetSearchState();
-searchApp(term);
-
-if (typeof turnstile !== 'undefined') {
-    setTimeout(() => {
-        turnstile.reset();
-    }, 1500); // 1500ms = 1.5 giây
+            searchApp(term);
+          if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
 }
         }, 800);
     });
