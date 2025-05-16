@@ -112,33 +112,45 @@ function toggleTheme() {
 
 // Search functionality
 function setupSearchForm() {
-    const form = $('searchForm');
-    if (!form) return;
+  const form = document.getElementById('searchForm');
+  const searchInput = document.getElementById('searchTerm');
+  const searchError = document.getElementById('searchError');
 
-    const searchError = $('searchError');
-    const searchInput = $('searchTerm');
-    
-    // Focus effect
-    searchInput.addEventListener('focus', () => {
-        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
+  if (!form || !searchInput) return;
+
+  searchInput.addEventListener('focus', () => {
+    searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
+  });
+
+  searchInput.addEventListener('blur', () => {
+    searchInput.parentElement.style.boxShadow = '';
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const term = searchInput.value.trim();
+    if (!term) {
+      if (searchError) {
+        searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
+        searchError.style.display = 'block';
+      }
+      return;
+    }
+
+    // Gửi xác thực Turnstile
+    const formData = new FormData(form);
+    const res = await fetch('/api/verify-turnstile', {
+      method: 'POST',
+      body: formData
     });
-    
-    searchInput.addEventListener('blur', () => {
-        searchInput.parentElement.style.boxShadow = '';
-    });
-    
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const response = await fetch('/api/verify-turnstile', {
-            method: 'POST',
-            body: formData
-        });
-        const result = await response.json();
-        if (!result.success) {
-            alert("Xác thực thất bại. Vui lòng thử lại.");
-            return;
-        }
+
+    const result = await res.json();
+    if (!result.success) {
+      alert("Xác thực thất bại. Vui lòng thử lại.");
+      return;
+    }
+
         const term = searchInput.value.trim();
         setDisplay('error', 'none');
         setDisplay('noResults', 'none');
