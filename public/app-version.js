@@ -54,12 +54,12 @@ function extractAppIdFromUrl(url) {
 function initApp() {
     setupThemeToggle();
     setupSearchForm();
-    setupPopularApps();
     setupQuickHelp();
+    setupPopularApps();
     checkUrlForAppId();
     
     // Load ads
-    if (typeof adsbygoogle !== 'undefined') {
+    if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
         adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
@@ -74,7 +74,8 @@ function setupQuickHelp() {
     const quickHelp = document.querySelector('.quick-help');
     if (!quickHelp) return;
     
-    const toggleHelp = () => {
+    const toggleHelp = (e) => {
+        e.preventDefault();
         quickHelp.classList.toggle('expanded');
     };
     
@@ -115,35 +116,87 @@ function setupSearchForm() {
     const form = $('searchForm');
     if (!form) return;
 
-    const searchError = $('searchError');
-    const searchInput = $('searchTerm');
-    
-    // Focus effect
-    searchInput.addEventListener('focus', () => {
-        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
-    });
-    
-    searchInput.addEventListener('blur', () => {
-        searchInput.parentElement.style.boxShadow = '';
-    });
-    
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const term = searchInput.value.trim();
-        setDisplay('error', 'none');
-        setDisplay('noResults', 'none');
-        if (searchError) searchError.style.display = 'none';
+        const term = $('searchTerm').value.trim();
+        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+
+        const showSearchError = (msg) => {
+            const errBox = $('searchError');
+            if (errBox) {
+                errBox.innerHTML = msg;
+                errBox.style.display = 'block';
+            }
+        };
+
+        $('searchError').style.display = 'none';
 
         if (!term) {
-            if (searchError) {
-                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-                searchError.style.display = 'block';
+            showSearchError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
+            return;
+        }
+
+        if (!token) {
+            showSearchError('Vui lòng xác minh bạn không phải robot (Turnstile).');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'cf-turnstile-response': token })
+            });
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
+                return;
             }
+        } catch (err) {
+            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
             return;
         }
 
         resetSearchState();
-        searchApp(term);
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
+    });
+
+    $('searchTerm').addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            const term = this.value.trim();
+            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+
+            if (!term || !token) return;
+
+            try {
+                const res = await fetch('/api/verify-turnstile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 'cf-turnstile-response': token })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) return;
+            } catch {
+                return;
+            }
+
+            resetSearchState();
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
+        }, 800);
     });
 }
 
@@ -243,6 +296,24 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
+    // Scroll to result block
+    const resultBlock = $('result');
+    if (resultBlock) {
+        const firstCard = resultBlock.querySelector('.app-card');
+    if (firstCard) {
+        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    }
+
+    // Hiển thị quảng cáo ngay lập tức
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'block');
+
+    // Hiển thị toast thông báo số kết quả
+    showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
+
     setDisplay('appInfoSkeleton', 'none');
     
     // Update breadcrumb
@@ -449,7 +520,7 @@ async function fetchVersions(appId) {
         
         // Add timeout for fetchVersions
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
         
         try {
             const response = await fetch(apiUrl.toString(), {
@@ -457,7 +528,7 @@ async function fetchVersions(appId) {
                 signal: controller.signal
             });
             
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
@@ -473,7 +544,7 @@ async function fetchVersions(appId) {
             versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             renderVersions();
         } catch (fetchError) {
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
                 console.log('Sử dụng dữ liệu mẫu do timeout');
                 // Use sample data if API timeout
@@ -531,7 +602,7 @@ function renderVersions(searchTerm = '') {
     <input type="text" id="version-search" class="version-search"
            placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
     <button type="submit" class="version-search-button">
-        <i class="fas fa-search"></i> Tìm kiếm
+        <i class="fas fa-search"></i>
     </button>
 </form>
         </div>
@@ -694,10 +765,12 @@ function showReleaseNotes(notes) {
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
     
     // Close modal with ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
+    const escListener = (e) => {
+        if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', escListener);
+    modal.addEventListener('close', () => {
+        document.removeEventListener('keydown', escListener);
     });
 }
 
@@ -737,6 +810,35 @@ function setupPopularApps() {
             });
         });
     }
+}
+
+// Hiển thị toast nhỏ thông báo
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
 }
 
 // Initialize when DOM is loaded

@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "api/*.js",
-      "use": "@vercel/node@3.0.0"
+      "use": "@vercel/node"
     },
     {
       "src": "public/**",
@@ -13,30 +13,22 @@
   "routes": [
     {
       "src": "/api/getAppVersions",
-      "dest": "/api/getAppVersions.js",
-      "methods": ["GET"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Content-Type": "application/json"
-      }
+      "dest": "/api/getAppVersions.js"
     },
     {
       "src": "/api/appInfo",
-      "dest": "/api/appInfo.js",
-      "methods": ["GET"],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS"
-      }
+      "dest": "/api/appInfo.js"
     },
     {
-      "src": "/api/(.*)",
-      "status": 404
+      "src": "/api/verify-turnstile",
+      "dest": "/api/verify-turnstile.js"
+    },
+    {
+      "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/public/$1"
     }
   ]
 }

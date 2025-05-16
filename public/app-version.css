@@ -1372,3 +1372,124 @@ body.dark-mode {
         width: 100%;
     }
 }
+
+/* === Custom UX Improvements === */
+
+/* Sticky Search Form */
+.search-form {
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    background-color: var(--bg-color);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+/* Refined breadcrumb appearance */
+.breadcrumb {
+    margin: 10px 0 5px;
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.breadcrumb a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.breadcrumb #currentPage {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Center tab header titles */
+.app-info-tabs {
+    justify-content: center;
+    gap: 10px;
+}
+
+.tab-btn {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 18px;
+}
+
+/* Search button in version tab - icon only */
+.version-search-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.version-search-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.version-search {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    min-width: 240px;
+    height: 38px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+.version-search-button {
+    height: 38px;
+    width: 38px;
+    padding: 0;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.version-search-button i {
+    font-size: 14px;
+}
+
+.version-search-button:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Align versions header for clarity */
+.versions-header {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+@media (min-width: 600px) {
+    .versions-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
+
+.turnstile-wrapper {
+  width: 100%;
+  max-width: 640px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.turnstile-wrapper iframe {
+  width: 100% !important;
+  max-width: 100%;
+}

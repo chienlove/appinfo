@@ -1,4 +1,13 @@
-module.exports = async (req, res) => {
+// api/appInfo.js
+const handler = async (req, res) => {
+  // CORS Preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
   try {
     const { id, term } = req.query;
     
@@ -41,13 +50,15 @@ module.exports = async (req, res) => {
 
     const data = await response.json();
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.status(200).json(data);
+    return res.status(200).json(data);
 
   } catch (error) {
     console.error('iTunes API Error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: "iTunes API Error",
       message: error.message
     });
   }
 };
+
+module.exports = handler;

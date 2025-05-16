@@ -31,6 +31,7 @@ function showError(message) {
     setHTML('error', `<i class="fas fa-exclamation-circle"></i> ${message}`);
     setDisplay('error', 'block');
     setDisplay('loading', 'none');
+    setDisplay('appInfoSkeleton', 'none');
 }
 
 function extractAppIdFromUrl(url) {
@@ -53,15 +54,19 @@ function extractAppIdFromUrl(url) {
 function initApp() {
     setupThemeToggle();
     setupSearchForm();
-    setupPopularApps();
     setupQuickHelp();
+    setupPopularApps();
     checkUrlForAppId();
     
     // Load ads
-    if (typeof adsbygoogle !== 'undefined') {
+    if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
         adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
+    
+    // Auto focus search input
+    const searchInput = $('searchTerm');
+    if (searchInput) searchInput.focus();
 }
 
 // Setup quick help toggle
@@ -69,7 +74,8 @@ function setupQuickHelp() {
     const quickHelp = document.querySelector('.quick-help');
     if (!quickHelp) return;
     
-    const toggleHelp = () => {
+    const toggleHelp = (e) => {
+        e.preventDefault();
         quickHelp.classList.toggle('expanded');
     };
     
@@ -110,36 +116,98 @@ function setupSearchForm() {
     const form = $('searchForm');
     if (!form) return;
 
-    const searchError = $('searchError');
-    
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const term = $('searchTerm').value.trim();
-        setDisplay('error', 'none');
-        if (searchError) searchError.style.display = 'none';
+        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+
+        const showSearchError = (msg) => {
+            const errBox = $('searchError');
+            if (errBox) {
+                errBox.innerHTML = msg;
+                errBox.style.display = 'block';
+            }
+        };
+
+        $('searchError').style.display = 'none';
 
         if (!term) {
-            if (searchError) {
-                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-                searchError.style.display = 'block';
+            showSearchError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
+            return;
+        }
+
+        if (!token) {
+            showSearchError('Vui lòng xác minh bạn không phải robot (Turnstile).');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'cf-turnstile-response': token })
+            });
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
+                return;
             }
+        } catch (err) {
+            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
             return;
         }
 
         resetSearchState();
         searchApp(term);
+      if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
+}
+    });
+
+    $('searchTerm').addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            const term = this.value.trim();
+            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+
+            if (!term || !token) return;
+
+            try {
+                const res = await fetch('/api/verify-turnstile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 'cf-turnstile-response': token })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) return;
+            } catch {
+                return;
+            }
+
+            resetSearchState();
+            searchApp(term);
+          if (typeof turnstile !== 'undefined') {
+    turnstile.reset();
+}
+        }, 800);
     });
 }
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
     setDisplay('error', 'none');
+    setDisplay('noResults', 'none');
     setDisplay('appInfo', 'none');
+    setDisplay('appInfoSkeleton', 'block');
     setDisplay('result', 'none');
     versions = [];
     currentPage = 1;
     currentAppId = null;
     activeTab = 'info';
+    
+    // Update breadcrumb
+    setHTML('currentPage', 'Đang tìm kiếm...');
 }
 
 // Check URL for app ID on page load
@@ -156,6 +224,7 @@ function checkUrlForAppId() {
 async function searchApp(term) {
     try {
         setDisplay('loading', 'flex');
+        setDisplay('appInfoSkeleton', 'block');
         const appIdFromUrl = extractAppIdFromUrl(term);
         
         if (appIdFromUrl) {
@@ -178,6 +247,15 @@ async function searchApp(term) {
         
         const data = await response.json();
         if (!data.results || data.results.length === 0) {
+            setDisplay('noResults', 'flex');
+            setDisplay('loading', 'none');
+            setDisplay('appInfoSkeleton', 'none');
+            
+            // Setup retry button
+            document.querySelector('.retry-button')?.addEventListener('click', () => {
+                searchApp(term);
+            });
+            
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
         
@@ -212,6 +290,28 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
+    // Scroll to result block
+    const resultBlock = $('result');
+    if (resultBlock) {
+        const firstCard = resultBlock.querySelector('.app-card');
+    if (firstCard) {
+        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    }
+
+    // Hiển thị quảng cáo ngay lập tức
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'block');
+
+    // Hiển thị toast thông báo số kết quả
+    showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
+
+    setDisplay('appInfoSkeleton', 'none');
+    
+    // Update breadcrumb
+    setHTML('currentPage', 'Kết quả tìm kiếm');
 
     // Click để lấy chi tiết app
     document.querySelectorAll('.app-card').forEach(item => {
@@ -228,6 +328,7 @@ function displaySearchResults(apps) {
 async function fetchAppInfo(appId) {
     try {
         setDisplay('loading', 'flex');
+        setDisplay('appInfoSkeleton', 'block');
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('id', appId);
         
@@ -248,11 +349,15 @@ async function fetchAppInfo(appId) {
         displayAppInfo(data.results[0]);
         currentAppId = appId;
         updateUrlWithAppId(appId);
+        
+        // Update breadcrumb
+        setHTML('currentPage', data.results[0]?.trackName || 'Chi tiết ứng dụng');
     } catch (error) {
         console.error('fetchAppInfo Error:', error);
         showError(`Không tải được thông tin ứng dụng: ${error.message}`);
     } finally {
         setDisplay('loading', 'none');
+        setDisplay('appInfoSkeleton', 'none');
     }
 }
 
@@ -381,8 +486,10 @@ function displayAppInfo(app) {
                 navigator.clipboard.writeText(text);
                 const originalHTML = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i><span>Đã sao chép</span>';
+                btn.style.backgroundColor = '#4CAF50';
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
+                    btn.style.backgroundColor = '';
                 }, 2000);
             }
         });
@@ -407,7 +514,7 @@ async function fetchVersions(appId) {
         
         // Add timeout for fetchVersions
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
         
         try {
             const response = await fetch(apiUrl.toString(), {
@@ -415,7 +522,7 @@ async function fetchVersions(appId) {
                 signal: controller.signal
             });
             
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
@@ -431,7 +538,7 @@ async function fetchVersions(appId) {
             versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             renderVersions();
         } catch (fetchError) {
-            clearTimeout(timeout);
+            clearTimeout(timeoutId);
             if (fetchError.name === 'AbortError') {
                 console.log('Sử dụng dữ liệu mẫu do timeout');
                 // Use sample data if API timeout
@@ -489,7 +596,7 @@ function renderVersions(searchTerm = '') {
     <input type="text" id="version-search" class="version-search"
            placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
     <button type="submit" class="version-search-button">
-        <i class="fas fa-search"></i> Tìm kiếm
+        <i class="fas fa-search"></i>
     </button>
 </form>
         </div>
@@ -652,10 +759,12 @@ function showReleaseNotes(notes) {
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
     
     // Close modal with ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
+    const escListener = (e) => {
+        if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', escListener);
+    modal.addEventListener('close', () => {
+        document.removeEventListener('keydown', escListener);
     });
 }
 
@@ -695,6 +804,35 @@ function setupPopularApps() {
             });
         });
     }
+}
+
+// Hiển thị toast nhỏ thông báo
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
 }
 
 // Initialize when DOM is loaded
