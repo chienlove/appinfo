@@ -112,6 +112,7 @@ function toggleTheme() {
 
 // Search functionality
 
+
 function setupSearchForm() {
   const form = document.getElementById('searchForm');
   const searchInput = document.getElementById('searchTerm');
@@ -136,6 +137,32 @@ function setupSearchForm() {
         searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
         searchError.style.display = 'block';
       }
+      return;
+    }
+
+    const token = form.querySelector('input[name="cf-turnstile-response"]')?.value;
+    if (!token) {
+      alert("Vui lòng xác thực trước khi tìm kiếm.");
+      return;
+    }
+
+    const formData = new FormData(form);
+    const res = await fetch('/api/verify-turnstile', {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await res.json();
+    if (!result.success) {
+      alert("Xác thực thất bại. Vui lòng thử lại.");
+      return;
+    }
+
+    resetSearchState();
+    searchApp(term);
+  });
+}
+
       return;
     }
 
