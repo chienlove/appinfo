@@ -1372,3 +1372,49 @@ body.dark-mode {
         width: 100%;
     }
 }
+
+/* === Custom Fixes === */
+.version-search-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+.version-search-button {
+    height: 38px;
+    white-space: nowrap;
+    padding: 0 14px;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.version-search-button:hover {
+    background-color: var(--primary-hover);
+}
+
+.breadcrumb {
+    margin: 15px 0;
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.breadcrumb a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.breadcrumb #currentPage {
+    font-weight: 700;
+    color: var(--primary-color);
+}
