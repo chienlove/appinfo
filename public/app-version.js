@@ -59,7 +59,7 @@ function initApp() {
     checkUrlForAppId();
     
     // Load ads
-    if (typeof adsbygoogle !== 'undefined') {
+    if (typeof adsbygoogle !== 'undefined' && adsbygoogle.push) {
         adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
@@ -155,15 +155,18 @@ function setupSearchForm() {
             return;
         }
 
+        // Kiểm tra xác thực Turnstile
         const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
         if (!token) {
             showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
             return;
         }
 
+        // Hiển thị loading
         resetSearchState();
-
+        
         try {
+            // Gửi xác thực Turnstile với dữ liệu đúng format
             const verifyData = new URLSearchParams();
             verifyData.append('cf-turnstile-response', token);
             
@@ -181,11 +184,14 @@ function setupSearchForm() {
                 return;
             }
 
+            // Nếu xác thực thành công, tiến hành tìm kiếm
             await searchApp(term);
         } catch (error) {
             console.error('Xác thực lỗi:', error);
             showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
         }
+    });
+} // <-- Thêm dòng này để đóng hàm setupSearchForm()
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
@@ -507,7 +513,7 @@ async function fetchVersions(appId) {
         
         // Add timeout for fetchVersions
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
         
         try {
             const response = await fetch(apiUrl.toString(), {
@@ -752,10 +758,12 @@ function showReleaseNotes(notes) {
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
     
     // Close modal with ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
+    const escListener = (e) => {
+        if (e.key === 'Escape') closeModal();
+    };
+    document.addEventListener('keydown', escListener);
+    modal.addEventListener('close', () => {
+        document.removeEventListener('keydown', escListener);
     });
 }
 
