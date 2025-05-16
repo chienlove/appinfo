@@ -1,14 +1,28 @@
-module.exports = async (req, res) => {
+// api/verify-turnstile.js
+const handler = async (req, res) => {
+  // CORS Preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const token = req.body['cf-turnstile-response'];
+  const token = req.body && req.body['cf-turnstile-response'];
   const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
   const secret = process.env.TURNSTILE_SECRET;
 
   if (!token) {
     return res.status(400).json({ error: 'Missing Turnstile token' });
+  }
+
+  if (!secret) {
+    console.error('TURNSTILE_SECRET environment variable is not set');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   try {
@@ -30,6 +44,9 @@ module.exports = async (req, res) => {
 
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error('Turnstile verification error:', err);
     return res.status(500).json({ error: 'Internal server error', details: err.message });
   }
-}
+};
+
+module.exports = handler;

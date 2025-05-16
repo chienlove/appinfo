@@ -1,4 +1,13 @@
-module.exports = async (req, res) => {
+// api/getAppVersions.js
+const handler = async (req, res) => {
+  // CORS Preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
   try {
     const appId = req.query.id;
     
@@ -76,3 +85,5 @@ module.exports = async (req, res) => {
     });
   }
 };
+
+module.exports = handler;
