@@ -1,25 +1,29 @@
-
-const express = require('express');
-const app = express();
-
-app.use(express.json());
-
 // api/verify-turnstile.js
+
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
+
 const handler = async (req, res) => {
-  // CORS Preflight
+  // Đặt CORS cho mọi yêu cầu
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Xử lý preflight
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(200).end();
   }
 
+  // Chỉ chấp nhận POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const token = req.body && req.body['cf-turnstile-response'];
-  const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
+  const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
   const secret = process.env.TURNSTILE_SECRET;
 
   if (!token) {
@@ -55,4 +59,4 @@ const handler = async (req, res) => {
   }
 };
 
-module.exports = handler;
+export default handler;
