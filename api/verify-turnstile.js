@@ -12,7 +12,7 @@ const handler = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const token = req.body && req.body['cf-turnstile-response'];
+  const token = req.body['cf-turnstile-response'] || req.body.token;
   const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
   const secret = process.env.TURNSTILE_SECRET;
 

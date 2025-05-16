@@ -305,57 +305,5 @@
     <script src="app-version.js?v=4.4"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
-<script>
-let turnstileToken = '';
-
-function onTurnstileSuccess(token) {
-    turnstileToken = token;
-    console.log("Turnstile token received:", turnstileToken);
-}
-
-async function handleSubmit(event) {
-    event.preventDefault();
-    
-    const searchTerm = document.getElementById('searchTerm').value.trim();
-    const searchError = document.getElementById('searchError');
-    
-    if (!searchTerm) {
-        searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-        searchError.style.display = 'block';
-        return;
-    } else {
-        searchError.style.display = 'none';
-    }
-
-    if (!turnstileToken) {
-        alert("Vui lòng xác thực bằng Turnstile trước khi gửi.");
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/verify-turnstile', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                'cf-turnstile-response': turnstileToken,
-                'searchTerm': searchTerm
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            alert("Xác thực thành công!");
-            turnstileToken = ''; // Reset token sau khi xác thực
-        } else {
-            alert("Xác thực thất bại: " + (data.details || "Lỗi không xác định"));
-        }
-    } catch (error) {
-        console.error("Error verifying Turnstile:", error);
-        alert("Lỗi xác thực. Vui lòng thử lại sau.");
-    }
-}
-</script>
-
 </body>
 </html>
