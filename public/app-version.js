@@ -127,54 +127,71 @@ function setupSearchForm() {
         searchInput.parentElement.style.boxShadow = '';
     });
 
+    // Search functionality
+function setupSearchForm() {
+    const form = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchTerm');
+    const searchError = document.getElementById('searchError');
+
+    if (!form || !searchInput) return;
+
+    searchInput.addEventListener('focus', () => {
+        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
+    });
+
+    searchInput.addEventListener('blur', () => {
+        searchInput.parentElement.style.boxShadow = '';
+    });
+
     form.addEventListener('submit', async function(e) {
-    e.preventDefault();
+        e.preventDefault();
 
-    const term = searchInput.value.trim();
-    if (!term) {
-        if (searchError) {
-            searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
-            searchError.style.display = 'block';
-        }
-        return;
-    }
-
-    // Kiểm tra xác thực Turnstile
-    const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-    if (!token) {
-        showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
-        return;
-    }
-
-    // Hiển thị loading
-    resetSearchState();
-    
-    try {
-        // Gửi xác thực Turnstile với dữ liệu đúng format
-        const verifyData = new URLSearchParams();
-        verifyData.append('cf-turnstile-response', token);
-        
-        const res = await fetch('/api/verify-turnstile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: verifyData
-        });
-
-        const result = await res.json();
-        if (!result.success) {
-            showError("Xác thực thất bại. Vui lòng thử lại.");
+        const term = searchInput.value.trim();
+        if (!term) {
+            if (searchError) {
+                searchError.textContent = 'Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.';
+                searchError.style.display = 'block';
+            }
             return;
         }
 
-        // Nếu xác thực thành công, tiến hành tìm kiếm
-        await searchApp(term);
-    } catch (error) {
-        console.error('Xác thực lỗi:', error);
-        showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
-    }
-});
+        // Kiểm tra xác thực Turnstile
+        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
+        if (!token) {
+            showError('Vui lòng xác thực CAPTCHA trước khi tìm kiếm.');
+            return;
+        }
+
+        // Hiển thị loading
+        resetSearchState();
+        
+        try {
+            // Gửi xác thực Turnstile với dữ liệu đúng format
+            const verifyData = new URLSearchParams();
+            verifyData.append('cf-turnstile-response', token);
+            
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: verifyData
+            });
+
+            const result = await res.json();
+            if (!result.success) {
+                showError("Xác thực thất bại. Vui lòng thử lại.");
+                return;
+            }
+
+            // Nếu xác thực thành công, tiến hành tìm kiếm
+            await searchApp(term);
+        } catch (error) {
+            console.error('Xác thực lỗi:', error);
+            showError("Có lỗi xảy ra khi xác thực. Vui lòng thử lại.");
+        }
+    });
+} // <-- Thêm dòng này để đóng hàm setupSearchForm()
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
