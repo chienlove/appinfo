@@ -112,22 +112,8 @@ function toggleTheme() {
 }
 
 // Search functionality
-function setupSearchForm() {
-    const form = document.getElementById('searchForm');
-    const searchInput = document.getElementById('searchTerm');
-    const searchError = document.getElementById('searchError');
+/ <-- Thêm dòng này để đóng hàm setupSearchForm()
 
-    if (!form || !searchInput) return;
-
-    searchInput.addEventListener('focus', () => {
-        searchInput.parentElement.style.boxShadow = '0 0 0 3px rgba(67, 97, 238, 0.3)';
-    });
-
-    searchInput.addEventListener('blur', () => {
-        searchInput.parentElement.style.boxShadow = '';
-    });
-
-    
 function resetSearchState() {
     setDisplay('loading', 'flex');
     setDisplay('error', 'none');
