@@ -1481,3 +1481,15 @@ body.dark-mode {
         align-items: center;
     }
 }
+
+.turnstile-wrapper {
+  width: 100%;
+  max-width: 640px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.turnstile-wrapper iframe {
+  width: 100% !important;
+  max-width: 100%;
+}
