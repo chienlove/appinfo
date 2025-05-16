@@ -346,6 +346,7 @@ async function handleSubmit(event) {
 
         if (data.success) {
             alert("Xác thực thành công!");
+            turnstileToken = ''; // Reset token sau khi xác thực
         } else {
             alert("Xác thực thất bại: " + (data.details || "Lỗi không xác định"));
         }
@@ -355,7 +356,6 @@ async function handleSubmit(event) {
     }
 }
 </script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 </body>
 </html>
