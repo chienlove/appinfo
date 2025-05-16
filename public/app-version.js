@@ -163,17 +163,30 @@ function setupSearchForm() {
 });
 
     // Setup debounced search
-    $('searchTerm').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            const term = this.value.trim();
-            if (term) {
-                resetSearchState();
-                searchApp(term);
-            }
-        }, 800);
-    });
-}
+    $('searchTerm').addEventListener('input', function () {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
+        const term = this.value.trim();
+        const token = document.querySelector('[name="cf-turnstile-response"]')?.value;
+
+        if (!term || !token) return;
+
+        try {
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'cf-turnstile-response': token })
+            });
+            const result = await res.json();
+            if (!res.ok || !result.success) return;
+        } catch {
+            return;
+        }
+
+        resetSearchState();
+        searchApp(term);
+    }, 800);
+});
 
 function resetSearchState() {
     setDisplay('loading', 'flex');
