@@ -246,16 +246,15 @@ function displaySearchResults(apps) {
     // Scroll to result block
     const resultBlock = $('result');
     if (resultBlock) {
-        const firstCard = resultBlock.querySelector('.app-card');
-if (firstCard) {
-    firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-} else {
-    resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     // Hiển thị quảng cáo sau 3 giây nếu có
-    const adBanners = const adBanners = document.querySelectorAll('.ads-container');
-adBanners.forEach(ad => ad.style.display = 'block');
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'none');
+    setTimeout(() => {
+        adBanners.forEach(ad => ad.style.display = 'block');
+    }, 3000);
 
     // Hiển thị toast thông báo số kết quả
     showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
