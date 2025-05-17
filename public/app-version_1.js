@@ -159,9 +159,12 @@ function setupSearchForm() {
         }
 
         resetSearchState();
-        searchApp(term);
-      if (typeof turnstile !== 'undefined') {
-    turnstile.reset();
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
 }
     });
 
@@ -186,9 +189,12 @@ function setupSearchForm() {
             }
 
             resetSearchState();
-            searchApp(term);
-          if (typeof turnstile !== 'undefined') {
-    turnstile.reset();
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
 }
         }, 800);
     });
