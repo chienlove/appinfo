@@ -4,6 +4,7 @@ let versions = [];
 let currentAppId = null;
 let activeTab = 'info';
 let searchTimeout;
+let selectedPopularApp = null;
 
 // DOM Utilities
 const $ = (id) => document.getElementById(id);
@@ -141,23 +142,6 @@ function setupSearchForm() {
             return;
         }
 
-        try {
-            const res = await fetch('/api/verify-turnstile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 'cf-turnstile-response': token })
-            });
-            const result = await res.json();
-
-            if (!res.ok || !result.success) {
-                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
-                return;
-            }
-        } catch (err) {
-            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
-            return;
-        }
-
         resetSearchState();
         searchApp(term);
 
@@ -172,30 +156,10 @@ function setupSearchForm() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
             const term = this.value.trim();
-            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-
-            if (!term || !token) return;
-
-            try {
-                const res = await fetch('/api/verify-turnstile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 'cf-turnstile-response': token })
-                });
-                const result = await res.json();
-                if (!res.ok || !result.success) return;
-            } catch {
-                return;
-            }
+            if (!term) return;
 
             resetSearchState();
             searchApp(term);
-
-            if (typeof turnstile !== 'undefined') {
-                setTimeout(() => {
-                    turnstile.reset();
-                }, 1500);
-            }
         }, 800);
     });
 }
@@ -296,15 +260,11 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
+    
     // Scroll to result block
     const resultBlock = $('result');
     if (resultBlock) {
-        const firstCard = resultBlock.querySelector('.app-card');
-        if (firstCard) {
-            firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // Hiển thị quảng cáo ngay lập tức
@@ -790,7 +750,7 @@ function setupPopularApps() {
         { id: '545519333', name: 'TikTok', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ab/53/cc/ab53cc04-35b9-66f1-d811-d67f16482515/AppIcon_TikTok-0-0-1x_U007epad-0-1-0-0-85-220.png/100x100bb.jpg' },
         { id: '447188370', name: 'Chrome', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/be/88/17/be88172d-bab8-1d57-a087-63f694ed898e/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-85-220.png/100x100bb.jpg' },
         { id: '414478124', name: 'YouTube', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/79/90/0b/79900b7c-1363-621a-fad2-1cad6ffcc425/logo_youtube_2024_q4_color-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220-0.png/100x100bb.jpg' },
-        { id: 'id284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/cf/2f/52/cf2f5243-39c3-8d39-4775-f8cd1453ecfe/logo_maps_ios_color-0-1x_U007emarketing-0-0-0-7-0-0-0-0-85-220-0.png/100x100bb.jpg' }
+        { id: '284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/cf/2f/52/cf2f5243-39c3-8d39-4775-f8cd1453ecfe/logo_maps_ios_color-0-1x_U007emarketing-0-0-0-7-0-0-0-0-85-220-0.png/100x100bb.jpg' }
     ];
 
     const appsGrid = document.querySelector('.apps-grid');
@@ -805,11 +765,11 @@ function setupPopularApps() {
         document.querySelectorAll('.popular-app-card').forEach(card => {
             card.addEventListener('click', function (e) {
                 e.preventDefault();
-                const appId = this.getAttribute('data-appid')?.replace('id', '');
-                const appName = this.querySelector('.app-name')?.innerText || '';
-                const appIcon = this.querySelector('img')?.src || '';
+                const appId = this.getAttribute('data-appid');
+                const appName = this.querySelector('.app-name').innerText;
+                const appIcon = this.querySelector('img').src;
 
-                window.selectedPopularApp = appId;
+                selectedPopularApp = appId;
 
                 $('previewAppName').innerText = appName;
                 $('previewAppIcon').src = appIcon;
@@ -819,7 +779,7 @@ function setupPopularApps() {
                 if (typeof turnstile !== 'undefined') {
                     turnstile.render('#popularTurnstileBox', {
                         sitekey: '0x4AAAAAABdbzXYVaBJR7Vav',
-                        callback: 'onPopularVerified'
+                        callback: onPopularVerified
                     });
                 }
             });
@@ -858,10 +818,10 @@ function showToast(message) {
 
 function onPopularVerified(token) {
     closePopularModal();
-    if (token && window.selectedPopularApp) {
-        $('searchTerm').value = window.selectedPopularApp;
+    if (token && selectedPopularApp) {
+        $('searchTerm').value = selectedPopularApp;
         resetSearchState();
-        searchApp(window.selectedPopularApp);
+        searchApp(selectedPopularApp);
         setTimeout(() => {
             if (typeof turnstile !== 'undefined') {
                 turnstile.reset();
