@@ -843,3 +843,41 @@ function showToast(message) {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
+
+
+function onPopularVerified(token) {
+    closePopularModal();
+    if (token && window.selectedPopularApp) {
+        $('searchTerm').value = window.selectedPopularApp;
+        resetSearchState();
+        searchApp(window.selectedPopularApp);
+        setTimeout(() => {
+            if (typeof turnstile !== 'undefined') {
+                turnstile.reset();
+            }
+        }, 2000);
+    }
+}
+
+function closePopularModal() {
+    $('popularPreviewModal').style.display = 'none';
+}
+
+document.querySelectorAll('.app-card').forEach(card => {
+    card.addEventListener('click', function () {
+        const appId = this.getAttribute('data-appid')?.replace('id', '');
+        const appName = this.querySelector('.app-name')?.innerText || '';
+        const appIcon = this.querySelector('img')?.src || '';
+        window.selectedPopularApp = appId;
+        $('previewAppName').innerText = appName;
+        $('previewAppIcon').src = appIcon;
+        $('previewAppDescription').innerText = 'Vui lòng xác minh để xem thông tin chi tiết.';
+        $('popularPreviewModal').style.display = 'flex';
+        if (typeof turnstile !== 'undefined') {
+            turnstile.render('#popularTurnstileBox', {
+                sitekey: '0x4AAAAAABdbzXYVaBJR7Vav',
+                callback: 'onPopularVerified'
+            });
+        }
+    });
+});

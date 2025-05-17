@@ -313,5 +313,21 @@
     <script src="app-version.js?v=4.4"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
+
+<div id="popularPreviewModal" class="preview-modal" style="display: none;">
+  <div class="modal-overlay" onclick="closePopularModal()"></div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <img id="previewAppIcon" src="" alt="" class="modal-icon" />
+      <h2 id="previewAppName"></h2>
+    </div>
+    <p id="previewAppDescription" class="preview-desc">
+      Ứng dụng phổ biến. Vui lòng xác minh để xem chi tiết.
+    </p>
+    <div class="cf-turnstile" id="popularTurnstileBox" data-sitekey="0x4AAAAAABdbzXYVaBJR7Vav" data-callback="onPopularVerified"></div>
+    <button onclick="closePopularModal()" class="close-button">Hủy</button>
+  </div>
+</div>
+
 </body>
 </html>
