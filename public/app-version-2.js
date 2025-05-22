@@ -7,14 +7,8 @@ let searchTimeout;
 
 // DOM Utilities
 const $ = (id) => document.getElementById(id);
-const setHTML = (id, html) => {
-    const el = $(id);
-    if (el) el.innerHTML = html;
-};
-const setDisplay = (id, value) => {
-    const el = $(id);
-    if (el) el.style.display = value;
-};
+const setHTML = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
+const setDisplay = (id, value) => { const el = $(id); if (el) el.style.display = value; };
 
 // Utility functions
 function sanitizeHTML(str) {
@@ -49,26 +43,11 @@ function extractAppIdFromUrl(url) {
         /[?&]id=(\d+)/i,
         /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/(\d+)/i
     ];
-
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match && match[1]) return match[1];
     }
     return null;
-}
-
-// Fetch API utility
-async function fetchAPI(url, options = {}) {
-    try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        throw new Error(error.message || 'Lỗi khi gọi API');
-    }
 }
 
 // Initialize the app
@@ -78,31 +57,28 @@ function initApp() {
     setupQuickHelp();
     setupPopularApps();
     checkUrlForAppId();
-    autoFocusSearchInput();
-    loadAds();
-}
-
-function autoFocusSearchInput() {
-    const searchInput = $('searchTerm');
-    if (searchInput) searchInput.focus();
-}
-
-function loadAds() {
+    
+    // Load ads
     if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
+        adsbygoogle = window.adsbygoogle || [];
         adsbygoogle.push({});
     }
+    
+    // Auto focus search input
+    const searchInput = $('searchTerm');
+    if (searchInput) searchInput.focus();
 }
 
 // Setup quick help toggle
 function setupQuickHelp() {
     const quickHelp = document.querySelector('.quick-help');
     if (!quickHelp) return;
-
+    
     const toggleHelp = (e) => {
         e.preventDefault();
         quickHelp.classList.toggle('expanded');
     };
-
+    
     quickHelp.querySelector('.help-toggle').addEventListener('click', toggleHelp);
 }
 
@@ -110,25 +86,29 @@ function setupQuickHelp() {
 function setupThemeToggle() {
     const toggleBtn = document.querySelector('.theme-toggle');
     if (!toggleBtn) return;
-
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    
+    // Check for saved theme preference
+    if (localStorage.getItem('theme') === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.body.classList.add('dark-mode');
         toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
     }
-
+    
     toggleBtn.addEventListener('click', toggleTheme);
 }
 
 function toggleTheme() {
     const body = document.body;
-    const toggleBtn = document.querySelector('.theme-toggle');
     const isDark = body.classList.toggle('dark-mode');
-
-    toggleBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    const toggleBtn = document.querySelector('.theme-toggle');
+    
+    if (isDark) {
+        toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+        localStorage.setItem('theme', 'light');
+    }
 }
 
 // Search functionality
@@ -141,66 +121,83 @@ function setupSearchForm() {
         const term = $('searchTerm').value.trim();
         const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
 
+        const showSearchError = (msg) => {
+            const errBox = $('searchError');
+            if (errBox) {
+                errBox.innerHTML = msg;
+                errBox.style.display = 'block';
+            }
+        };
+
+        $('searchError').style.display = 'none';
+
         if (!term) {
-            showError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
+            showSearchError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
             return;
         }
 
         if (!token) {
-            showError('Vui lòng xác minh bạn không phải robot (Turnstile).');
+            showSearchError('Vui lòng xác minh bạn không phải robot (Turnstile).');
             return;
         }
 
         try {
-            await verifyTurnstile(token);
-            resetSearchState();
-            await searchApp(term);
-            resetTurnstile();
-        } catch (error) {
-            showError(error.message);
+            const res = await fetch('/api/verify-turnstile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 'cf-turnstile-response': token })
+            });
+            const result = await res.json();
+
+            if (!res.ok || !result.success) {
+                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
+                return;
+            }
+        } catch (err) {
+            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
+            return;
         }
+
+        resetSearchState();
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
     });
 
-    $('searchTerm').addEventListener('input', handleSearchInput);
-}
+    $('searchTerm').addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            const term = this.value.trim();
+            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
 
-async function verifyTurnstile(token) {
-    const res = await fetchAPI('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 'cf-turnstile-response': token })
-    });
-    
-    if (!res.success) {
-        throw new Error('Xác minh bảo mật thất bại. Vui lòng thử lại.');
-    }
-}
+            if (!term || !token) return;
 
-function resetTurnstile() {
-    if (typeof turnstile !== 'undefined') {
-        setTimeout(() => {
-            turnstile.reset();
-        }, 1500);
-    }
-}
+            try {
+                const res = await fetch('/api/verify-turnstile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 'cf-turnstile-response': token })
+                });
+                const result = await res.json();
+                if (!res.ok || !result.success) return;
+            } catch {
+                return;
+            }
 
-function handleSearchInput() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(async () => {
-        const term = this.value.trim();
-        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-
-        if (!term || !token) return;
-
-        try {
-            await verifyTurnstile(token);
             resetSearchState();
-            await searchApp(term);
-            resetTurnstile();
-        } catch (error) {
-            // Handle error silently or show a message
-        }
-    }, 800);
+searchApp(term);
+
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
+        }, 800);
+    });
 }
 
 function resetSearchState() {
@@ -214,6 +211,8 @@ function resetSearchState() {
     currentPage = 1;
     currentAppId = null;
     activeTab = 'info';
+    
+    // Update breadcrumb
     setHTML('currentPage', 'Đang tìm kiếm...');
 }
 
@@ -233,28 +232,39 @@ async function searchApp(term) {
         setDisplay('loading', 'flex');
         setDisplay('appInfoSkeleton', 'block');
         const appIdFromUrl = extractAppIdFromUrl(term);
-
+        
         if (appIdFromUrl) {
             await fetchAppInfo(appIdFromUrl);
             await fetchVersions(appIdFromUrl);
             return;
         }
-
+        
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('term', term);
-
-        const data = await fetchAPI(apiUrl.toString(), {
+        
+        const response = await fetch(apiUrl.toString(), {
             headers: { 'Accept': 'application/json' }
         });
-
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
         if (!data.results || data.results.length === 0) {
             setDisplay('noResults', 'flex');
             setDisplay('loading', 'none');
             setDisplay('appInfoSkeleton', 'none');
-            setupRetryButton(term);
+            
+            // Setup retry button
+            document.querySelector('.retry-button')?.addEventListener('click', () => {
+                searchApp(term);
+            });
+            
             throw new Error('Không tìm thấy ứng dụng nào phù hợp');
         }
-
+        
         displaySearchResults(data.results);
     } catch (error) {
         console.error('searchApp Error:', error);
@@ -264,21 +274,12 @@ async function searchApp(term) {
     }
 }
 
-function setupRetryButton(term) {
-    const retryButton = document.querySelector('.retry-button');
-    if (retryButton) {
-        retryButton.addEventListener('click', () => {
-            searchApp(term);
-        });
-    }
-}
-
 // Display search results
 function displaySearchResults(apps) {
     const container = $('result');
     if (!container) return;
 
-    const resultsHTML = `
+    container.innerHTML = `
         <div class="search-results">
             <h3>Tìm thấy ${apps.length} ứng dụng</h3>
             <div class="apps-grid">
@@ -294,13 +295,31 @@ function displaySearchResults(apps) {
         </div>
     `;
 
-    container.innerHTML = resultsHTML;
     container.style.display = 'block';
-    scrollToFirstResult();
+    // Scroll to result block
+    const resultBlock = $('result');
+    if (resultBlock) {
+        const firstCard = resultBlock.querySelector('.app-card');
+    if (firstCard) {
+        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    }
+
+    // Hiển thị quảng cáo ngay lập tức
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'block');
+
+    // Hiển thị toast thông báo số kết quả
     showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
+
     setDisplay('appInfoSkeleton', 'none');
+    
+    // Update breadcrumb
     setHTML('currentPage', 'Kết quả tìm kiếm');
 
+    // Click để lấy chi tiết app
     document.querySelectorAll('.app-card').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
@@ -311,16 +330,6 @@ function displaySearchResults(apps) {
     });
 }
 
-function scrollToFirstResult() {
-    const resultBlock = $('result');
-    const firstCard = resultBlock.querySelector('.app-card');
-    if (firstCard) {
-        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
 // Fetch app info
 async function fetchAppInfo(appId) {
     try {
@@ -328,18 +337,26 @@ async function fetchAppInfo(appId) {
         setDisplay('appInfoSkeleton', 'block');
         const apiUrl = new URL('/api/appInfo', window.location.origin);
         apiUrl.searchParams.set('id', appId);
-
-        const data = await fetchAPI(apiUrl.toString(), {
+        
+        const response = await fetch(apiUrl.toString(), {
             headers: { 'Accept': 'application/json' }
         });
-
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
         if (!data.results || !Array.isArray(data.results)) {
             throw new Error('Dữ liệu ứng dụng không hợp lệ');
         }
-
+        
         displayAppInfo(data.results[0]);
         currentAppId = appId;
         updateUrlWithAppId(appId);
+        
+        // Update breadcrumb
         setHTML('currentPage', data.results[0]?.trackName || 'Chi tiết ứng dụng');
     } catch (error) {
         console.error('fetchAppInfo Error:', error);
@@ -362,7 +379,7 @@ function displayAppInfo(app) {
     const fileSizeMB = app.fileSizeBytes ? (app.fileSizeBytes / (1024 * 1024)).toFixed(1) + ' MB' : 'Không rõ';
     const rating = app.averageUserRating ? `${app.averageUserRating.toFixed(1)}★ (${app.userRatingCount?.toLocaleString() || '0'} đánh giá)` : 'Chưa có đánh giá';
     const appStoreUrl = `https://apps.apple.com/app/id${app.trackId}`;
-
+    
     const infoHTML = `
         <div class="app-info-header">
             <img src="${iconUrl}" alt="${sanitizeHTML(app.trackName)}" class="app-icon-large">
@@ -425,7 +442,7 @@ function displayAppInfo(app) {
         </div>
         ` : ''}
     `;
-
+    
     const tabsHTML = `
         <div class="app-info-tabs">
             <button class="tab-btn ${activeTab === 'info' ? 'active' : ''}" data-tab="info">
@@ -445,49 +462,53 @@ function displayAppInfo(app) {
             <div id="pagination" class="pagination-container"></div>
         </div>
     `;
-
+    
     $('appInfo').innerHTML = tabsHTML;
     $('appInfo').style.display = 'block';
-    setupTabSwitching();
-    setupCopyButtons();
-}
-
-function setupTabSwitching() {
+    
+    // Setup tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const tab = btn.dataset.tab;
             activeTab = tab;
-
+            
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
+            
             btn.classList.add('active');
             $(`${tab}-tab`).classList.add('active');
-
+            
             if (tab === 'versions' && versions.length === 0) {
                 fetchVersions(currentAppId);
             }
         });
     });
-}
-
-function setupCopyButtons() {
+    
+    // Setup copy buttons
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const text = btn.dataset.text;
             if (text) {
-                navigator.clipboard.writeText(text).then(() => {
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i><span>Đã sao chép</span>';
-                    btn.style.backgroundColor = '#4CAF50';
-                    setTimeout(() => {
-                        btn.innerHTML = originalHTML;
-                        btn.style.backgroundColor = '';
-                    }, 2000);
-                });
+                navigator.clipboard.writeText(text);
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i><span>Đã sao chép</span>';
+                btn.style.backgroundColor = '#4CAF50';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.backgroundColor = '';
+                }, 2000);
             }
         });
     });
+}
+
+function renderStars(rating) {
+    if (!rating) return '';
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5 ? 1 : 0;
+    const emptyStars = 5 - fullStars - halfStar;
+    
+    return '★'.repeat(fullStars) + (halfStar ? '½' : '') + '☆'.repeat(emptyStars);
 }
 
 // Fetch versions
@@ -496,23 +517,50 @@ async function fetchVersions(appId) {
         setDisplay('loading', 'flex');
         const apiUrl = new URL('/api/getAppVersions', window.location.origin);
         apiUrl.searchParams.set('id', appId);
-
+        
         // Add timeout for fetchVersions
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
-
-        const data = await fetchAPI(apiUrl.toString(), {
-            headers: { 'Accept': 'application/json', signal: controller.signal }
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!data.data || !Array.isArray(data.data)) {
-            throw new Error('Dữ liệu phiên bản không hợp lệ');
+        
+        try {
+            const response = await fetch(apiUrl.toString(), {
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (!data.data || !Array.isArray(data.data)) {
+                throw new Error('Dữ liệu phiên bản không hợp lệ');
+            }
+            
+            // Sort from newest to oldest
+            versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            renderVersions();
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                console.log('Sử dụng dữ liệu mẫu do timeout');
+                // Use sample data if API timeout
+                versions = [
+                    {
+                        bundle_version: "1.0.0",
+                        external_identifier: "123456789",
+                        created_at: new Date().toISOString(),
+                        release_notes: "Phiên bản đầu tiên của ứng dụng"
+                    }
+                ];
+                renderVersions();
+            } else {
+                throw fetchError;
+            }
         }
-
-        versions = data.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        renderVersions();
     } catch (error) {
         console.error('fetchVersions Error:', error);
         showError(`Không tải được lịch sử phiên bản: ${error.message}`);
@@ -521,40 +569,44 @@ async function fetchVersions(appId) {
     }
 }
 
-// Render versions
 function renderVersions(searchTerm = '') {
-    const filteredVersions = searchTerm
-        ? versions.filter(v => v.bundle_version?.toLowerCase().includes(searchTerm.toLowerCase()))
-        : versions;
+    let filteredVersions = versions;
+
+    if (searchTerm) {
+        filteredVersions = versions.filter(v =>
+            v.bundle_version?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
 
     const start = (currentPage - 1) * perPage;
     const end = start + perPage;
-    const displayVersions = filteredVersions.slice(start, end);
+    const displayVersions = searchTerm ? filteredVersions : versions.slice(start, end);
 
     if (displayVersions.length === 0) {
         const message = searchTerm
-            ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
-            : 'Không có dữ liệu phiên bản';
-        setHTML('versions-content', `<p class="no-versions">${message}</p>`);
+        ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
+        : 'Không có dữ liệu phiên bản';
+    setHTML('versions-content', `<p class="no-versions">${message}</p>`);
         setHTML('pagination', '');
         return;
     }
 
     const versionsHTML = `
-        <div class="versions-header">
-            <h3>
-                <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
-            </h3>
-            <div class="versions-controls">
-                <form id="versionSearchForm" class="version-search-form">
-                    <input type="text" id="version-search" class="version-search" placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
-                    <button type="submit" class="version-search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
+    <div class="versions-header">
+        <h3>
+            <i class="fas fa-history"></i>
+            <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+        </h3>
+        <div class="versions-controls">
+            <form id="versionSearchForm" class="version-search-form">
+    <input type="text" id="version-search" class="version-search"
+           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+    <button type="submit" class="version-search-button">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
         </div>
+    </div>
         <div class="versions-scroll-container">
             <table class="versions-table">
                 <thead>
@@ -590,14 +642,22 @@ function renderVersions(searchTerm = '') {
     `;
 
     setHTML('versions-content', versionsHTML);
+
+if (!searchTerm) {
     renderPagination();
+} else {
+    setHTML('pagination', '');
+}
 
     // Setup tìm kiếm
-    document.getElementById('versionSearchForm')?.addEventListener('submit', (e) => {
+    const versionForm = document.getElementById('versionSearchForm');
+if (versionForm) {
+    versionForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const value = document.getElementById('version-search').value.trim();
         renderVersions(value);
     });
+}
 
     // Setup view notes
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
@@ -612,15 +672,20 @@ function renderVersions(searchTerm = '') {
 
 function getVersionBadge(version) {
     if (!version.bundle_version) return '';
-
+    
     const versionParts = version.bundle_version.split('.');
     if (versionParts.length < 1) return '';
-
+    
+    // Major version change (x.0.0)
     if (versionParts.length === 1 || (versionParts[1] === '0' && (!versionParts[2] || versionParts[2] === '0'))) {
         return '<span class="version-badge major">Lớn</span>';
-    } else if (versionParts.length === 2 || (versionParts[2] === '0')) {
+    }
+    // Minor version change (x.x.0)
+    else if (versionParts.length === 2 || (versionParts[2] === '0')) {
         return '<span class="version-badge minor">Nhỏ</span>';
-    } else {
+    }
+    // Patch version change (x.x.x)
+    else {
         return '<span class="version-badge patch">Sửa lỗi</span>';
     }
 }
@@ -631,44 +696,48 @@ function renderPagination() {
         setHTML('pagination', '');
         return;
     }
-
+    
     let html = '<div class="pagination">';
+    
+    // Previous button
     if (currentPage > 1) {
         html += `<button class="pagination-button" data-page="${currentPage - 1}">
             <i class="fas fa-chevron-left"></i>
         </button>`;
     }
-
+    
+    // Page numbers
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
-
+    
     if (startPage > 1) {
         html += `<button class="pagination-button" data-page="1">1</button>`;
         if (startPage > 2) {
             html += '<span class="pagination-ellipsis">...</span>';
         }
     }
-
+    
     for (let i = startPage; i <= endPage; i++) {
         html += `<button class="pagination-button ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
     }
-
+    
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             html += '<span class="pagination-ellipsis">...</span>';
         }
         html += `<button class="pagination-button" data-page="${totalPages}">${totalPages}</button>`;
     }
-
+    
+    // Next button
     if (currentPage < totalPages) {
         html += `<button class="pagination-button" data-page="${currentPage + 1}">
             <i class="fas fa-chevron-right"></i>
         </button>`;
     }
-
+    
     html += '</div>';
     setHTML('pagination', html);
-
+    
     // Add event listeners to pagination buttons
     document.querySelectorAll('.pagination-button').forEach(button => {
         button.addEventListener('click', function() {
@@ -686,15 +755,15 @@ function renderPagination() {
 function showReleaseNotes(notes) {
     const modal = $('modal');
     const modalContent = modal.querySelector('.release-notes-content');
-
+    
     modalContent.innerHTML = notes;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-
+    
     // Close modal when clicking overlay or close button
     modal.querySelector('.modal-overlay').addEventListener('click', closeModal);
     modal.querySelector('.modal-close').addEventListener('click', closeModal);
-
+    
     // Close modal with ESC key
     const escListener = (e) => {
         if (e.key === 'Escape') closeModal();
@@ -723,7 +792,7 @@ function setupPopularApps() {
         { id: '414478124', name: 'YouTube', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/79/90/0b/79900b7c-1363-621a-fad2-1cad6ffcc425/logo_youtube_2024_q4_color-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220-0.png/100x100bb.jpg' },
         { id: 'id284815942', name: 'Google Maps', icon: 'https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/cf/2f/52/cf2f5243-39c3-8d39-4775-f8cd1453ecfe/logo_maps_ios_color-0-1x_U007emarketing-0-0-0-7-0-0-0-0-85-220-0.png/100x100bb.jpg' }
     ];
-
+    
     const appsGrid = document.querySelector('.apps-grid');
     if (appsGrid) {
         appsGrid.innerHTML = popularApps.map(app => `
@@ -732,7 +801,7 @@ function setupPopularApps() {
                 <div class="app-name">${app.name}</div>
             </div>
         `).join('');
-
+        
         document.querySelectorAll('.app-card').forEach(card => {
             card.addEventListener('click', function() {
                 const appId = this.getAttribute('data-appid').replace('id', '');
