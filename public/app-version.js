@@ -292,7 +292,7 @@ function displaySearchResults(apps) {
     container.style.display = 'block';
     
     // Scroll to top of results container
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('searchForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     // Show ads
     const adBanners = document.querySelectorAll('.ads-container');

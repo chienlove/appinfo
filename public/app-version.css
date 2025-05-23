@@ -1552,3 +1552,14 @@ body.dark-mode {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.turnstile-wrapper {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.ads-container.horizontal-banner {
+    max-width: 728px;
+    height: auto;
+}
