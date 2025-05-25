@@ -58,6 +58,12 @@ function initApp() {
     setupPopularApps();
     checkUrlForAppId();
     
+    // Load ads
+    if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
+        adsbygoogle = window.adsbygoogle || [];
+        adsbygoogle.push({});
+    }
+    
     // Auto focus search input
     const searchInput = $('searchTerm');
     if (searchInput) searchInput.focus();
@@ -153,13 +159,13 @@ function setupSearchForm() {
         }
 
         resetSearchState();
-        searchApp(term);
+searchApp(term);
 
-        if (typeof turnstile !== 'undefined') {
-            setTimeout(() => {
-                turnstile.reset();
-            }, 1500);
-        }
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
     });
 
     $('searchTerm').addEventListener('input', function () {
@@ -183,13 +189,13 @@ function setupSearchForm() {
             }
 
             resetSearchState();
-            searchApp(term);
+searchApp(term);
 
-            if (typeof turnstile !== 'undefined') {
-                setTimeout(() => {
-                    turnstile.reset();
-                }, 1500);
-            }
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
         }, 800);
     });
 }
@@ -290,18 +296,22 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
-    
-    // Scroll to top of results container
-    document.getElementById('searchForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Scroll to result block
+    const resultBlock = $('result');
+    if (resultBlock) {
+        const firstCard = resultBlock.querySelector('.app-card');
+    if (firstCard) {
+        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    }
 
-    // Show ads
+    // Hiển thị quảng cáo ngay lập tức
     const adBanners = document.querySelectorAll('.ads-container');
-    adBanners.forEach(ad => {
-        ad.style.display = 'block';
-        ad.classList.add('horizontal-banner');
-    });
+    adBanners.forEach(ad => ad.style.display = 'block');
 
-    // Show toast notification
+    // Hiển thị toast thông báo số kết quả
     showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
 
     setDisplay('appInfoSkeleton', 'none');
@@ -309,7 +319,7 @@ function displaySearchResults(apps) {
     // Update breadcrumb
     setHTML('currentPage', 'Kết quả tìm kiếm');
 
-    // Click to get app details
+    // Click để lấy chi tiết app
     document.querySelectorAll('.app-card').forEach(item => {
         item.addEventListener('click', function() {
             const appId = this.getAttribute('data-appid');
@@ -639,7 +649,7 @@ if (!searchTerm) {
     setHTML('pagination', '');
 }
 
-    // Setup search
+    // Setup tìm kiếm
     const versionForm = document.getElementById('versionSearchForm');
 if (versionForm) {
     versionForm.addEventListener('submit', (e) => {
@@ -802,7 +812,7 @@ function setupPopularApps() {
     }
 }
 
-// Show small toast notification
+// Hiển thị toast nhỏ thông báo
 function showToast(message) {
     let toast = document.getElementById('toast');
     if (!toast) {
