@@ -1,4 +1,3 @@
-// Các biến toàn cục
 let currentPage = 1;
 const perPage = 15;
 let versions = [];
@@ -49,19 +48,6 @@ function extractAppIdFromUrl(url) {
         if (match && match[1]) return match[1];
     }
     return null;
-}
-
-// Hiển thị toast thông báo
-function showToast(message, duration = 3000) {
-    const toast = $('toast');
-    if (!toast) return;
-    
-    toast.textContent = message;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, duration);
 }
 
 // Initialize the app
@@ -173,13 +159,13 @@ function setupSearchForm() {
         }
 
         resetSearchState();
-        searchApp(term);
+searchApp(term);
 
-        if (typeof turnstile !== 'undefined') {
-            setTimeout(() => {
-                turnstile.reset();
-            }, 1500);
-        }
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
     });
 
     $('searchTerm').addEventListener('input', function () {
@@ -203,13 +189,13 @@ function setupSearchForm() {
             }
 
             resetSearchState();
-            searchApp(term);
+searchApp(term);
 
-            if (typeof turnstile !== 'undefined') {
-                setTimeout(() => {
-                    turnstile.reset();
-                }, 1500);
-            }
+if (typeof turnstile !== 'undefined') {
+    setTimeout(() => {
+        turnstile.reset();
+    }, 1500); // 1500ms = 1.5 giây
+}
         }, 800);
     });
 }
@@ -310,19 +296,22 @@ function displaySearchResults(apps) {
     `;
 
     container.style.display = 'block';
-    
     // Scroll to result block
     const resultBlock = $('result');
     if (resultBlock) {
         const firstCard = resultBlock.querySelector('.app-card');
-        if (firstCard) {
-            firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    if (firstCard) {
+        firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+        resultBlock.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     }
 
-    // Hiển thị toast thông báo
+    // Hiển thị quảng cáo ngay lập tức
+    const adBanners = document.querySelectorAll('.ads-container');
+    adBanners.forEach(ad => ad.style.display = 'block');
+
+    // Hiển thị toast thông báo số kết quả
     showToast(`Đã tìm thấy ${apps.length} ứng dụng`);
 
     setDisplay('appInfoSkeleton', 'none');
@@ -504,10 +493,6 @@ function displayAppInfo(app) {
                 const originalHTML = btn.innerHTML;
                 btn.innerHTML = '<i class="fas fa-check"></i><span>Đã sao chép</span>';
                 btn.style.backgroundColor = '#4CAF50';
-                
-                // Hiệu ứng confetti
-                showToast('Đã sao chép Bundle ID');
-                
                 setTimeout(() => {
                     btn.innerHTML = originalHTML;
                     btn.style.backgroundColor = '';
@@ -599,29 +584,29 @@ function renderVersions(searchTerm = '') {
 
     if (displayVersions.length === 0) {
         const message = searchTerm
-            ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
-            : 'Không có dữ liệu phiên bản';
-        setHTML('versions-content', `<p class="no-versions">${message}</p>`);
+        ? `Không tìm thấy phiên bản nào phù hợp với từ khóa: "${sanitizeHTML(searchTerm)}"`
+        : 'Không có dữ liệu phiên bản';
+    setHTML('versions-content', `<p class="no-versions">${message}</p>`);
         setHTML('pagination', '');
         return;
     }
 
     const versionsHTML = `
-        <div class="versions-header">
-            <h3>
-                <i class="fas fa-history"></i>
-                <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
-            </h3>
-            <div class="versions-controls">
-                <form id="versionSearchForm" class="version-search-form">
-                    <input type="text" id="version-search" class="version-search"
-                           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
-                    <button type="submit" class="version-search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
+    <div class="versions-header">
+        <h3>
+            <i class="fas fa-history"></i>
+            <span>Lịch sử Phiên bản (${filteredVersions.length})</span>
+        </h3>
+        <div class="versions-controls">
+            <form id="versionSearchForm" class="version-search-form">
+    <input type="text" id="version-search" class="version-search"
+           placeholder="Tìm kiếm phiên bản..." value="${sanitizeHTML(searchTerm)}">
+    <button type="submit" class="version-search-button">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
         </div>
+    </div>
         <div class="versions-scroll-container">
             <table class="versions-table">
                 <thead>
@@ -658,21 +643,21 @@ function renderVersions(searchTerm = '') {
 
     setHTML('versions-content', versionsHTML);
 
-    if (!searchTerm) {
-        renderPagination();
-    } else {
-        setHTML('pagination', '');
-    }
+if (!searchTerm) {
+    renderPagination();
+} else {
+    setHTML('pagination', '');
+}
 
     // Setup tìm kiếm
     const versionForm = document.getElementById('versionSearchForm');
-    if (versionForm) {
-        versionForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const value = document.getElementById('version-search').value.trim();
-            renderVersions(value);
-        });
-    }
+if (versionForm) {
+    versionForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const value = document.getElementById('version-search').value.trim();
+        renderVersions(value);
+    });
+}
 
     // Setup view notes
     document.querySelectorAll('.view-notes-btn').forEach(btn => {
@@ -825,6 +810,35 @@ function setupPopularApps() {
             });
         });
     }
+}
+
+// Hiển thị toast nhỏ thông báo
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(67, 97, 238, 0.95)';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 16px';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '14px';
+        toast.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+        toast.style.zIndex = '9999';
+        toast.style.transition = 'opacity 0.3s ease';
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = message;
+    toast.style.opacity = '1';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+    }, 2500);
 }
 
 // Initialize when DOM is loaded
