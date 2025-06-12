@@ -2,66 +2,315 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AppTrail - Tra cứu ứng dụng iOS</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Tra cứu thông tin ứng dụng iOS - Xem lịch sử phiên bản, thông tin chi tiết, ghi chú cập nhật của các ứng dụng trên App Store">
+    <meta name="keywords" content="tra cứu ứng dụng iOS, lịch sử phiên bản app, thông tin ứng dụng, App Store, bundle ID, version app">
+    <meta name="author" content="AppInfo StoreiOS">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="AppInfo - Tra cứu thông tin ứng dụng iOS">
+    <meta property="og:description" content="Công cụ tra cứu thông tin chi tiết và lịch sử phiên bản các ứng dụng iOS trên App Store">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://appinfo.storeios.net">
+    <meta property="og:image" content="https://appinfo.storeios.net/images/banner.png">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" type="image/png" href="/images/logo.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="/images/logo.png">
+    <meta name="theme-color" content="#4285f4">
+    
+    <title>AppInfo - Tra cứu ứng dụng iOS</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="app-version.css">
+    <link rel="stylesheet" href="app-version.css?v=5.0">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3905625903416797" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="app-container">
+        <!-- Header với gradient động -->
         <header class="app-header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-mobile-alt"></i>
-                    <h1>AppTrail</h1>
-                </div>
-                <div class="search-container">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Tìm kiếm ứng dụng...">
-                        <button id="searchBtn"><i class="fas fa-search"></i></button>
+            <div class="header-content container">
+                <div class="header-left">
+                    <div class="logo">
+                        <i class="fas fa-mobile-screen"></i>
+                        <span>AppInfo</span>
                     </div>
-                    <div id="turnstileContainer" class="hidden"></div>
+                    <p class="subtitle">Công cụ tra cứu thông tin ứng dụng iOS</p>
                 </div>
-                <button class="theme-toggle"><i class="fas fa-moon"></i></button>
+                <button class="theme-toggle">
+                    <i class="fas fa-moon"></i>
+                </button>
             </div>
         </header>
 
-        <main class="main-content">
-            <section class="preview-section" id="previewSection">
-                <!-- Hiển thị kết quả tìm kiếm preview -->
+        <main class="main-content container">
+            <!-- Hero Section với hiệu ứng parallax -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1 class="gradient-text">Khám phá mọi thông tin ứng dụng iOS</h1>
+                    <p class="hero-subtitle">Tìm kiếm thông tin chi tiết, lịch sử phiên bản và hơn thế nữa</p>
+                    
+                    <!-- Search Form với floating label -->
+                    <form id="searchForm" class="search-form">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchTerm" 
+                                   placeholder="Nhập App ID, tên ứng dụng hoặc URL App Store">
+                            <button type="submit" class="search-button">
+                                <span>Tìm kiếm</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div id="searchError" class="error-message"></div>
+                        <div class="turnstile-wrapper">
+                            <div class="cf-turnstile" data-sitekey="0x4AAAAAABdbzXYVaBJR7Vav" name="cf-turnstile-response"></div>
+                        </div>
+                    </form>
+
+                    <!-- Breadcrumb -->
+                    <div class="breadcrumb container">
+                        <a href="/">Trang chủ</a>
+                        <span class="separator">/</span>
+                        <span id="currentPage">Tìm kiếm ứng dụng</span>
+                    </div>
+
+                    <!-- Quick Help với animation -->
+                    <div class="quick-help">
+                        <div class="help-toggle">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Hướng dẫn nhanh</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <div class="help-steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng tên ứng dụng</h4>
+                                        <p>Nhập tên ứng dụng vào ô tìm kiếm và nhấn nút "Tìm kiếm"</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng App ID</h4>
+                                        <p>Nhập ID số của ứng dụng (9-10 chữ số) để xem thông tin</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Tìm bằng URL App Store</h4>
+                                        <p>Dán URL đầy đủ từ App Store vào ô tìm kiếm</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h4>Hiển thị</h4>
+                                        <p>Ở kết quả tìm kiếm click vào ứng dụng muốn xem thông tin sẽ hiện ra 2 tab là thông tin & lịch sử phiên bản. Click để chuyển đổi xem thông tin giữa 2 tab</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <div class="step-number">5</div>
+                                    <div class="step-content">
+                                        <h4>Thông tin ở 2 tab</h4>
+                                        <p>Ở tab thông tin bao gồm: icon, tên ứng dụng, tác giả, phiên bản mới nhất, dung lượng, ngày phát hành, đánh giá, bundle id, ghi chú cập nhật. Ở tab lịch sử phiên bản bao gồm: danh sách phiên bản và số id version của phiên bản đó và ngày phát hành. Ở tab này có thể sử dụng chức năng tìm kiếm để tìm số id version theo số phiên bản. Ví dụ: muốn tìm id version của phiên 33.0, chỉ cần nhập 33 vào khung tìm kiếm sẽ hiện ra id version của phiên bản này</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="/images/banner.png" alt="AppInfo" class="parallax-img">
+                </div>
             </section>
 
-            <section class="detail-section hidden" id="detailSection">
-                <div class="app-info-container">
-                    <!-- Thông tin chi tiết app -->
+            <!-- Ads Banner -->
+            <div class="ads-container">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:728px;height:90px"
+                     data-ad-client="ca-pub-3905625903416797"
+                     data-ad-slot="5160182988"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+                <div class="ads-label">Quảng cáo</div>
+            </div>
+
+            <!-- App Info Section với layout mới -->
+            <section class="app-info-section">
+                <div id="loading" class="loading-container">
+                    <div class="loader"></div>
+                    <p class="loading-text">Đang tải dữ liệu...</p>
                 </div>
-                <div class="version-history">
-                    <h3><i class="fas fa-history"></i> Lịch sử phiên bản</h3>
-                    <div class="version-list" id="versionList"></div>
+
+                <div id="error" class="error-message"></div>
+                
+                <div id="noResults" class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>Không tìm thấy kết quả</h3>
+                    <p>Chúng tôi không tìm thấy ứng dụng phù hợp với từ khóa của bạn.</p>
+                    <button class="retry-button">Thử lại</button>
+                </div>
+
+                <div id="appInfoSkeleton" class="app-info-container" style="display: none;">
+                    <div class="app-info-header">
+                        <div class="skeleton" style="width: 110px; height: 110px; border-radius: 12px;"></div>
+                        <div style="flex: 1;">
+                            <div class="skeleton" style="width: 70%; height: 28px; margin-bottom: 10px;"></div>
+                            <div class="skeleton" style="width: 50%; height: 18px;"></div>
+                        </div>
+                    </div>
+                    <div class="app-meta-grid">
+                        <div class="app-meta-item">
+                            <div class="skeleton" style="width: 60%; height: 14px;"></div>
+                            <div class="skeleton" style="width: 80%; height: 18px; margin-top: 8px;"></div>
+                        </div>
+                        <div class="app-meta-item">
+                            <div class="skeleton" style="width: 60%; height: 14px;"></div>
+                            <div class="skeleton" style="width: 80%; height: 18px; margin-top: 8px;"></div>
+                        </div>
+                        <div class="app-meta-item">
+                            <div class="skeleton" style="width: 60%; height: 14px;"></div>
+                            <div class="skeleton" style="width: 80%; height: 18px; margin-top: 8px;"></div>
+                        </div>
+                        <div class="app-meta-item">
+                            <div class="skeleton" style="width: 60%; height: 14px;"></div>
+                            <div class="skeleton" style="width: 80%; height: 18px; margin-top: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="appInfo" class="app-info-container glass-card">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+
+                <div id="result" class="search-results-container glass-card">
+                    <!-- Kết quả tìm kiếm bằng tên sẽ hiển thị ở đây -->
+                </div>
+
+                <div id="pagination" class="pagination-container">
+                    <!-- Phân trang phiên bản sẽ hiển thị ở đây -->
                 </div>
             </section>
 
+            <!-- Popular Apps Section -->
             <section class="popular-section">
-                <h2><i class="fas fa-fire"></i> Ứng dụng phổ biến</h2>
-                <div class="popular-grid" id="popularApps"></div>
+                <h2 class="section-title">
+                    <i class="fas fa-fire"></i>
+                    <span>Ứng dụng phổ biến</span>
+                </h2>
+                <div class="apps-grid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Ads Banner -->
+            <div class="ads-container">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:728px;height:90px"
+                     data-ad-client="ca-pub-3905625903416797"
+                     data-ad-slot="5160182988"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+                <div class="ads-label">Quảng cáo</div>
+            </div>
+
+            <!-- Features Section -->
+            <section class="features-section">
+                <h2 class="section-title">Tại sao chọn AppInfo?</h2>
+                <div class="features-grid">
+                    <div class="feature-card glass-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3>Lịch sử phiên bản</h3>
+                        <p>Theo dõi tất cả các phiên bản đã phát hành của ứng dụng</p>
+                    </div>
+                    <div class="feature-card glass-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <h3>Thông tin chi tiết</h3>
+                        <p>Xem đầy đủ thông tin ứng dụng từ App Store</p>
+                    </div>
+                    <div class="feature-card glass-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h3>Cập nhật mới nhất</h3>
+                        <p>Luôn cập nhật thông tin mới nhất từ nhà phát triển</p>
+                    </div>
+                </div>
             </section>
         </main>
 
-        <div class="loading-overlay hidden" id="loadingOverlay">
-            <div class="loader"></div>
-        </div>
+        <!-- Footer với hiệu ứng glassmorphism -->
+        <footer class="app-footer glass-card">
+            <div class="footer-content container">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <i class="fas fa-mobile-screen"></i>
+                        <span>AppInfo</span>
+                    </div>
+                    <p class="footer-description">Công cụ tra cứu thông tin ứng dụng iOS chính xác và đầy đủ nhất</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="links-group">
+                        <h3>Công cụ</h3>
+                        <a href="#">Tìm kiếm ứng dụng</a>
+                        <a href="#">Lịch sử phiên bản</a>
+                        <a href="#">Ứng dụng phổ biến</a>
+                    </div>
+                    <div class="links-group">
+                        <h3>Thông tin</h3>
+                        <a href="#">Về chúng tôi</a>
+                        <a href="#">Chính sách bảo mật</a>
+                        <a href="#">Điều khoản sử dụng</a>
+                    </div>
+                    <div class="links-group">
+                        <h3>Liên hệ</h3>
+                        <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a href="#"><i class="fab fa-twitter"></i> Twitter</a>
+                        <a href="mailto:admin@storeios.net"><i class="fas fa-envelope"></i> Email</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2025 AppInfo. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
 
-        <div class="verify-modal hidden" id="verifyModal">
-            <div class="modal-content">
-                <h3>Xác thực để xem chi tiết</h3>
-                <div id="modalTurnstile"></div>
-                <button id="confirmVerifyBtn">Xác nhận</button>
+    <!-- Modal với hiệu ứng mới -->
+    <div id="modal" class="modal">
+        <div class="modal-overlay"></div>
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h3>Ghi chú cập nhật</h3>
+                <button class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="release-notes-content"></div>
             </div>
         </div>
     </div>
 
+    <!-- Toast notification -->
+    <div id="toast" class="toast-notification" aria-live="polite"></div>
+
+    <script src="app-version.js?v=5.0"></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="app-version.js"></script>
 </body>
 </html>
