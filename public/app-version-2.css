@@ -1,484 +1,8 @@
-let currentPage = 1;
-const perPage = 15;
-let versions = [];
-let currentAppId = null;
-let activeTab = 'info';
-let searchTimeout;
-
-const $ = (id) => document.getElementById(id);
-const setHTML = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
-const setDisplay = (id, value) => { const el = $(id); if (el) el.style.display = value; };
-
-function sanitizeHTML(str) {
-    if (!str) return '';
-    return str.toString()
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'Không rõ';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-}
-
-function showError(message) {
-    setHTML('error', `<i class="fas fa-exclamation-circle"></i> ${message}`);
-    setDisplay('error', 'block');
-    setDisplay('loading', 'none');
-    setDisplay('appInfoSkeleton', 'none');
-}
-
-function extractAppIdFromUrl(url) {
-    if (!url) return null;
-    if (/^\d+$/.test(url)) return url;
-    const patterns = [
-        /\/id(\d+)/i,
-        /\/app\/[^\/]+\/id(\d+)/i,
-        /[?&]id=(\d+)/i,
-        /apps\.apple\.com\/[a-z]{2}\/app\/[^\/]+\/(\d+)/i
-    ];
-    for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match && match[1]) return match[1];
-    }
-    return null;
-}
-
-function showToast(message, duration = 3000) {
-    const toast = $('toast');
-    if (!toast) return;
-    
-    toast.textContent = message;
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, duration);
-}
-
-function initApp() {
-    setupThemeToggle();
-    setupSearchForm();
-    setupQuickHelp();
-    setupPopularApps();
-    checkUrlForAppId();
-    
-    // Load ads
-    if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
-        adsbygoogle = window.adsbygoogle || [];
-        adsbygoogle.push({});
-    }
-    
-    // Auto focus search input
-    const searchInput = $('searchTerm');
-    if (searchInput) searchInput.focus();
-
-    // Hide sections initially
-    setDisplay('popular-section', 'none');
-    setDisplay('features-section', 'none');
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            setDisplay('popular-section', 'block');
-            setDisplay('features-section', 'block');
-        }
-    });
-}
-
-function setupQuickHelp() {
-    const quickHelp = document.querySelector('.quick-help');
-    if (!quickHelp) return;
-    
-    const toggleHelp = (e) => {
-        e.preventDefault();
-        const helpContent = quickHelp.querySelector('.help-content');
-        helpContent.style.display = helpContent.style.display === 'none' ? 'block' : 'none';
-        quickHelp.classList.toggle('expanded');
-    };
-    
-    quickHelp.querySelector('.help-toggle').addEventListener('click', toggleHelp);
-}
-
-function setupThemeToggle() {
-    const toggleBtn = document.querySelector('.theme-toggle');
-    if (!toggleBtn) return;
-    
-    if (localStorage.getItem('theme') === 'dark' || 
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.body.classList.add('dark-mode');
-        toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-    }
-    
-    toggleBtn.addEventListener('click', toggleTheme);
-}
-
-function toggleTheme() {
-    const body = document.body;
-    const isDark = body.classList.toggle('dark-mode');
-    const toggleBtn = document.querySelector('.theme-toggle');
-    
-    if (isDark) {
-        toggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
-        localStorage.setItem('theme', 'dark');
-    } else {
-        toggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
-        localStorage.setItem('theme', 'light');
-    }
-}
-
-function setupSearchForm() {
-    const form = $('searchForm');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const term = $('searchTerm').value.trim();
-        const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-
-        const showSearchError = (msg) => {
-            const errBox = $('searchError');
-            if (errBox) {
-                errBox.innerHTML = msg;
-                errBox.style.display = 'block';
-            }
-        };
-
-        $('searchError').style.display = 'none';
-
-        if (!term) {
-            showSearchError('Vui lòng nhập tên ứng dụng, App ID hoặc URL trước khi tìm kiếm.');
-            return;
-        }
-
-        if (!token) {
-            showSearchError('Vui lòng xác minh bạn không phải robot (Turnstile).');
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/verify-turnstile', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 'cf-turnstile-response': token })
-            });
-            const result = await res.json();
-
-            if (!res.ok || !result.success) {
-                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
-                return;
-            }
-        } catch (err) {
-            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
-            return;
-        }
-
-        resetSearchState();
-        searchApp(term);
-
-        if (typeof turnstile !== 'undefined') {
-            setTimeout(() => {
-                turnstile.reset();
-            }, 1500);
-        }
-    });
-
-    $('searchTerm').addEventListener('input', function () {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(async () => {
-            const term = this.value.trim();
-            const token = document.querySelector('input[name="cf-turnstile-response"]')?.value;
-
-            if (!term || !token) return;
-
-            try {
-                const res = await fetch('/api/verify-turnstile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 'cf-turnstile-response': token })
-                });
-                const result = await res.json();
-                if (!res.ok || !result.success) return;
-            } catch {
-                return;
-            }
-
-            resetSearchState();
-            searchApp(term);
-
-            if (typeof turnstile !== 'undefined') {
-                setTimeout(() => {
-                    turnstile.reset();
-                }, 1500);
-            }
-        }, 800);
-    });
-}
-
-function resetSearchState() {
-    setDisplay('loading', 'flex');
-    setDisplay('error', 'none');
-    setDisplay('noResults', 'none');
-    setDisplay('appInfo', 'none');
-    setDisplay('appInfoSkeleton', 'block');
-    setDisplay('result', 'none');
-    versions = [];
-    currentPage = 1;
-    currentAppId = null;
-    activeTab = 'info';
-    
-    setHTML('currentPage', 'Đang tìm kiếm...');
-}
-
-function checkUrlForAppId() {
-    const params = new URLSearchParams(window.location.search);
-    const appId = params.get('id');
-    if (appId && /^\d+$/.test(appId)) {
-        $('searchTerm').value = appId;
-        searchApp(appId);
-    }
-}
-
-async function searchApp(term) {
-    try {
-        setDisplay('loading', 'flex');
-        setDisplay('appInfoSkeleton', 'block');
-        const appIdFromUrl = extractAppIdFromUrl(term);
-        
-        if (appIdFromUrl) {
-            await fetchAppInfo(appIdFromUrl);
-            await fetchVersions(appIdFromUrl);
-            return;
-        }
-        
-        const apiUrl = new URL('/api/appInfo', window.location.origin);
-        apiUrl.searchParams.set('term', term);
-        
-        const response = await fetch(apiUrl.toString(), {
-            headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (!data.results || data.results.length === 0) {
-            setDisplay('noResults', 'flex');
-            setDisplay('loading', 'none');
-            setDisplay('appInfoSkeleton', 'none');
-            
-            document.querySelector('.retry-button')?.addEventListener('click', () => {
-                searchApp(term);
-            });
-            
-            throw new Error('Không tìm thấy ứng dụng nào phù hợp');
-        }
-        
-        displaySearchResults(data.results);
-    } catch (error) {
-        console.error('searchApp Error:', error);
-        showError(error.message);
-    } finally {
-        setDisplay('loading', 'none');
-    }
-}
-
-function displaySearchResults(apps) {
-    const container = $('result');
-    if (!container) return;
-
-    container.innerHTML = `
-        <div class="search-results">
-            <h3>Tìm thấy ${apps.length} ứng dụng</h3>
-            <div class="apps-grid">
-                ${apps.map(app => `
-                    <div class="app-card" data-appid="${app.trackId}">
-                        <img src="${app.artworkUrl100.replace('100x100bb', '200x200bb')}" 
-                             alt="${sanitizeHTML(app.trackName)}" 
-                             class="app-icon" loading="lazy">
-                        <div class="app-name">${sanitizeHTML(app.trackName)}</div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
-    container.style.display = 'block';
-    
-    // Cuộn đến đầu search-results-container
-    const offset = window.innerWidth <= 576 ? 60 : 20;
-    const containerTop = container.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({
-        top: containerTop,
-        behavior: 'smooth'
-    });
-    
-    // Làm nổi bật kết quả
-    container.classList.add('highlight');
-    setTimeout(() => container.classList.remove('highlight'), 2000);
-
-    // Hiển thị toast thông báo
-    showToast(`Đã tìm thấy ${apps.length} ứng dụng`, 3000);
-
-    setDisplay('appInfoSkeleton', 'none');
-    
-    setHTML('currentPage', 'Kết quả tìm kiếm');
-
-    document.querySelectorAll('.app-card').forEach(item => {
-        item.addEventListener('click', function() {
-            const appId = this.getAttribute('data-appid');
-            resetSearchState();
-            fetchAppInfo(appId);
-            fetchVersions(appId);
-        });
-    });
-}
-
-async function fetchAppInfo(appId) {
-    try {
-        setDisplay('loading', 'flex');
-        setDisplay('appInfoSkeleton', 'block');
-        const apiUrl = new URL('/api/appInfo', window.location.origin);
-        apiUrl.searchParams.set('id', appId);
-        
-        const response = await fetch(apiUrl.toString(), {
-            headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        if (!data.results || !Array.isArray(data.results)) {
-            throw new Error('Dữ liệu ứng dụng không hợp lệ');
-        }
-        
-        displayAppInfo(data.results[0]);
-        currentAppId = appId;
-        updateUrlWithAppId(appId);
-        
-        setHTML('currentPage', data.results[0]?.trackName || 'Chi tiết ứng dụng');
-    } catch (error) {
-        console.error('fetchAppInfo Error:', error);
-        showError(`Không tải được thông tin ứng dụng: ${error.message}`);
-    } finally {
-        setDisplay('loading', 'none');
-        setDisplay('appInfoSkeleton', 'none');
-    }
-}
-
-function updateUrlWithAppId(appId) {
-    const url = new URL(window.location);
-    url.searchParams.set('id', appId);
-    window.history.pushState({}, '', url);
-}
-
-function displayAppInfo(app) {
-    const iconUrl = app.artworkUrl512 || app.artworkUrl100 || app.artworkUrl60;
-    const fileSizeMB = app.fileSizeBytes ? (app.fileSizeBytes / (1024 * 1024)).toFixed(1) + ' MB' : 'Không rõ';
-    const rating = app.averageUserRating ? `${app.averageUserRating.toFixed(1)}★ (${app.userRatingCount?.toLocaleString() || '0'} đánh giá)` : 'Chưa có đánh giá';
-    const appStoreUrl = `https://apps.apple.com/app/id${app.trackId}`;
-    
-    const infoHTML = `
-        <div class="app-info-header">
-            <img src="${iconUrl}" alt="${sanitizeHTML(app.trackName)}" class="app-icon-large">
-            <div class="app-title-wrapper">
-                <div class="app-title-row">
-                    <h2 class="app-title">${sanitizeHTML(app.trackName)}</h2>
-                    <p class="app-developer">${sanitizeHTML(app.artistName)}</p>
-                </div>
-                <a href="${appStoreUrl}" target="_blank" class="app-store-button">
-                    <i class="fab fa-apple"></i>
-                    <span>Xem trên App Store</span>
-                </a>
-            </div>
-        </div>
-        <div class="app-meta-grid">
-            <div class="app-meta-item">
-                <div class="app-meta-label">Phiên bản hiện tại</div>
-                <div class="app-meta-value">
-                    ${sanitizeHTML(app.version || 'Không rõ')}
-                    <span class="version-badge latest">Mới nhất</span>
-                </div>
-            </div>
-            <div class="app-meta-item">
-                <div class="app-meta-label">Kích thước</div>
-                <div class="app-meta-value">${fileSizeMB}</div>
-            </div>
-            <div class="app-meta-item">
-                <div class="app-meta-label">Ngày phát hành</div>
-                <div class="app-meta-value">${formatDate(app.releaseDate)}</div>
-            </div>
-            <div class="app-meta-item">
-                <div class="app-meta-label">Đánh giá</div>
-                <div class="app-meta-value">
-                    <div class="rating-stars">
-                        <div class="stars">
-                            ${renderStars(app.averageUserRating)}
-                        </div>
-                        <span>${rating}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="bundle-id-container">
-            <div>
-                <div class="app-meta-label">Bundle ID</div>
-                <div class="app-meta-value">${sanitizeHTML(app.bundleId || 'Không rõ')}</div>
-            </div>
-            <button class="copy-btn" data-text="${app.bundleId || ''}">
-                <i class="fas fa-copy"></i>
-                <span>Sao chép</span>
-            </button>
-        </div>
-        ${app.releaseNotes ? `
-        <div class="release-notes-container">
-            <h3 class="release-notes-title">
-                <i class="fas fa-clipboard-list"></i>
-                <span>Ghi chú phát hành</span>
-            </h3>
-            <div class="release-notes-content">${sanitizeHTML(app.releaseNotes)}</div>
-        </div>
-        ` : ''}
-    `;
-    
-    const tabsHTML = `
-        <div class="app-info-tabs">
-            <button class="tab-btn ${activeTab === 'info' ? 'active' : ''}" data-tab="info" title="Xem thông tin chi tiết của ứng dụng">
-                <i class="fas fa-info-circle"></i>
-                <span>Thông tin</span>
-            </button>
-            <button class="tab-btn ${activeTab === 'versions' ? 'active' : ''}" data-tab="versions" title="Xem lịch sử phiên bản và ID phiên bản">
-                <i class="fas fa-history"></i>
-                <span>Lịch sử phiên bản</span>
-                <span class="tab-badge">${versions.length}</span>
-            </button>
-        </div>
-        <div class="tab-content ${activeTab === 'info' ? 'active' : ''}" id="info-tab">
-            ${infoHTML}
-        </div>
-        <div class="tab下一个
-
-**Thay đổi trong `app-version.js`**:
-- **Tối ưu cuộn khi tìm kiếm**: Sửa hàm `displaySearchResults` để cuộn chính xác đến đầu **search-results-container** với offset phù hợp cho mobile, thêm hiệu ứng `highlight` và thông báo toast rõ ràng.
-- **Ẩn section phụ ban đầu**: Thêm logic trong `initApp` để ẩn **popular-section** và **features-section** khi tải trang, chỉ hiển thị khi cuộn xuống.
-- **Tối ưu popular apps**: Thêm nút "Xem thêm" và chỉ hiển thị 4 ứng dụng ban đầu, phần còn lại ẩn với class `hidden`.
-
----
-
-### File: `app-version.css`
-
-<xaiArtifact artifact_id="cceb8bc7-083a-4660-b1ff-cf5825475a35" artifact_version_id="922729ad-4f18-4328-84d5-86af6b12023f" title="app-version.css" contentType="text/css">
 /* ===== BASE STYLES ===== */
 :root {
-    --primary-color: #007bff;
-    --primary-hover: #0056b3;
+    /* Light Theme Colors */
+    --primary-color: #4361ee;
+    --primary-hover: #3a56d4;
     --secondary-color: #3f37c9;
     --accent-color: #4895ef;
     --success-color: #4cc9f0;
@@ -490,6 +14,8 @@ function displayAppInfo(app) {
     --error-color: #f72585;
     --warning-color: #f8961e;
     --input-bg: #f1f3f5;
+    
+    /* Dark Theme Colors */
     --dark-primary: #4895ef;
     --dark-secondary: #4361ee;
     --dark-bg: #121212;
@@ -498,15 +24,23 @@ function displayAppInfo(app) {
     --dark-text-light: #b0b0b0;
     --dark-border: #333333;
     --dark-input-bg: #252525;
+    
+    /* Glassmorphism */
     --glass-bg: rgba(255, 255, 255, 0.1);
     --glass-border: 1px solid rgba(255, 255, 255, 0.2);
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+    
+    /* Shadows */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    /* Border Radius */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
+    
+    /* Transitions */
     --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -581,43 +115,52 @@ body {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.theme-toggle.pinned {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--primary-color);
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.2);
     border: none;
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--shadow-md);
-    z-index: 1000;
     transition: var(--transition);
 }
 
-.theme-toggle.pinned:hover {
-    background: var(--primary-hover);
-    transform: scale(1.1) rotate(15deg);
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05) rotate(15deg);
 }
 
 /* ===== HERO SECTION ===== */
 .hero-section {
-    padding: 20px 0;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    padding: 40px 0;
+    gap: 30px;
 }
 
 .hero-content {
-    max-width: 600px;
-    margin: 0 auto;
+    flex: 1;
+}
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-image img {
+    max-width: 280px;
+    height: auto;
+    filter: drop-shadow(0 10px 20px rgba(67, 97, 238, 0.2));
+    transition: transform 0.3s ease;
 }
 
 .hero-section h1 {
-    font-size: 28px;
+    font-size: 36px;
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 12px;
@@ -627,9 +170,10 @@ body {
 }
 
 .hero-section p {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--text-light);
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    max-width: 500px;
 }
 
 /* Gradient Text */
@@ -668,9 +212,10 @@ body {
     top: 0;
     z-index: 99;
     background-color: var(--bg-color);
-    padding: 10px 0;
-    margin-bottom: 30px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
 }
 
 .search-input-group {
@@ -680,21 +225,14 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
-    height: 60px;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    border: none;
-    animation: pulse 2s infinite;
+    height: 50px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
 }
 
 .search-input-group:focus-within {
     box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
-    transform: scale(1.02);
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
-    50% { box-shadow: 0 0 0 10px rgba(67, 97, 238, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+    border-color: var(--primary-color);
 }
 
 .search-icon {
@@ -702,39 +240,30 @@ body {
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: white;
+    color: var(--text-light);
     z-index: 1;
     pointer-events: none;
-    font-size: 20px;
-    transition: transform 0.3s ease;
-}
-
-.search-input-group:hover .search-icon {
-    transform: translateY(-50%) scale(1.2);
+    font-size: 16px;
 }
 
 #searchTerm {
     flex: 1;
     padding: 12px 16px 12px 42px;
     border: none;
-    font-size: 16px;
+    font-size: 15px;
     outline: none;
     background-color: transparent;
     height: 100%;
-    color: white;
-}
-
-#searchTerm::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-color);
 }
 
 .search-button {
-    background-color: white;
-    color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
     border: none;
     padding: 0 20px;
-    min-width: 120px;
-    font-size: 16px;
+    min-width: 110px;
+    font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -746,8 +275,7 @@ body {
 }
 
 .search-button:hover {
-    background-color: var(--success-color);
-    color: white;
+    background-color: var(--primary-hover);
     transform: translateY(-1px);
 }
 
@@ -756,20 +284,12 @@ body {
 }
 
 .search-button i {
-    font-size: 14px;
+    font-size: 13px;
     transition: transform 0.3s ease;
 }
 
 .search-button:hover i {
     transform: translateX(3px);
-}
-
-.search-cta {
-    text-align: center;
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-top: 10px;
-    font-size: 14px;
 }
 
 /* ===== QUICK HELP ===== */
@@ -802,14 +322,14 @@ body {
 }
 
 .help-content {
-    display: none;
-    max-height: 500px;
-    overflow-y: auto;
+    max-height: 0;
+    overflow: hidden;
     transition: max-height 0.3s ease;
 }
 
 .quick-help.expanded .help-content {
-    display: block;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .help-steps {
@@ -987,18 +507,6 @@ body {
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     margin-bottom: 30px;
-    padding-top: 20px;
-}
-
-.search-results-container.highlight {
-    animation: highlight 0.5s ease;
-    box-shadow: 0 0 10px rgba(76, 201, 240, 0.5);
-}
-
-@keyframes highlight {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
 }
 
 .search-results {
@@ -1012,44 +520,61 @@ body {
     color: var(--text-color);
 }
 
-.apps-grid {
+.apps-list {
     display: grid;
-    gap: 12px;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
 }
 
-.app-card {
+.app-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: var(--radius-sm);
     background-color: var(--card-bg);
-    border-radius: var(--radius-md);
-    overflow: hidden;
     border: 1px solid var(--border-color);
     transition: var(--transition);
     cursor: pointer;
-    text-align: center;
+    gap: 10px;
 }
 
-.app-card:hover {
-    transform: translateY(-3px);
+.app-item:hover {
+    transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
-}
-
-.app-card.hidden {
-    display: none;
+    border-color: var(--primary-color);
 }
 
 .app-icon {
-    width: 100%;
-    height: 90px;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
     object-fit: contain;
-    padding: 12px;
-    background-color: #f5f7ff;
-    border-bottom: 1px solid var(--border-color);
 }
 
-.app-name {
-    padding: 10px;
+.app-details {
+    flex: 1;
+}
+
+.app-details h4 {
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-color);
+    margin-bottom: 4px;
+}
+
+.app-details p {
+    font-size: 13px;
+    color: var(--text-light);
+}
+
+.app-meta {
+    font-size: 12px;
+    color: var(--text-light);
+    display: flex;
+    gap: 6px;
+}
+
+.app-item i {
+    color: var(--text-light);
     font-size: 13px;
 }
 
@@ -1066,62 +591,49 @@ body {
 
 .app-info-tabs {
     display: flex;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
 }
 
 .tab-btn {
-    padding: 14px 24px;
-    font-size: 16px;
-    border-radius: var(--radius-sm);
-    color: white;
-    background: transparent;
+    padding: 12px 20px;
+    background: none;
     border: none;
+    border-bottom: 3px solid transparent;
     cursor: pointer;
+    font-weight: 600;
+    color: var(--text-light);
     transition: var(--transition);
+    position: relative;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .tab-btn.active {
-    background: white;
     color: var(--primary-color);
-    box-shadow: var(--shadow-sm);
+    border-bottom-color: var(--primary-color);
+    background-color: rgba(67, 97, 238, 0.05);
 }
 
 .tab-btn:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-.tab-btn i {
-    font-size: 18px;
-}
-
-.tab-badge {
-    background: var(--success-color);
-    color: white;
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-left: 8px;
+    background: rgba(67, 97, 238, 0.1);
 }
 
 .tab-content {
     display: none;
-    padding: 24px;
+    padding: 20px;
 }
 
 .tab-content.active {
     display: block;
-    animation: slideIn 0.5s ease;
+    animation: fadeIn 0.3s ease;
 }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .app-info-header {
@@ -1321,31 +833,16 @@ body {
 }
 
 .version-search {
-    padding: 12px 16px;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--primary-color);
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    color: white;
-    font-size: 15px;
-    min-width: 250px;
-    box-shadow: var(--shadow-sm);
-}
-
-.version-search::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.version-search-button {
-    background: white;
-    color: var(--primary-color);
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    padding: 8px;
-    margin-left: 8px;
-}
-
-.version-search-button:hover {
-    background: var(--success-color);
-    color: white;
+    font-size: 14px;
+    min-width: 220px;
+    box-sizing: border-box;
+    -webkit-text-size-adjust: 100%;
+    height: 38px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
 }
 
 .versions-scroll-container {
@@ -1468,11 +965,11 @@ body {
 
 /* ===== POPULAR APPS ===== */
 .popular-section {
-    margin: 40px 0;
+    margin: 50px 0;
 }
 
 .section-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     margin-bottom: 20px;
     display: flex;
@@ -1485,30 +982,46 @@ body {
     color: var(--primary-color);
 }
 
-.section-subtitle {
-    font-size: 12px;
-    color: var(--text-light);
-    margin-left: 8px;
+.apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
 }
 
-.load-more-popular {
-    display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
+.app-card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
     cursor: pointer;
+    text-align: center;
 }
 
-.load-more-popular:hover {
-    background: var(--primary-hover);
+.app-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+
+.app-icon {
+    width: 100%;
+    height: 110px;
+    object-fit: contain;
+    padding: 18px;
+    background-color: #f5f7ff;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.app-name {
+    padding: 14px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 14px;
 }
 
 /* ===== FEATURES SECTION ===== */
 .features-section {
-    margin: 40px 0;
+    margin: 50px 0;
 }
 
 .features-grid {
@@ -1560,14 +1073,14 @@ body {
 .app-footer {
     background-color: var(--dark-card);
     color: white;
-    padding: 30px 0 0;
-    margin-top: 40px;
+    padding: 50px 0 0;
+    margin-top: 50px;
 }
 
 .footer-content {
     display: flex;
-    gap: 30px;
-    margin-bottom: 20px;
+    gap: 50px;
+    margin-bottom: 30px;
     flex-wrap: wrap;
 }
 
@@ -1582,12 +1095,15 @@ body {
 }
 
 .footer-description {
-    display: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 16px;
 }
 
 .footer-links {
     display: flex;
-    gap: 30px;
+    gap: 50px;
     flex-wrap: wrap;
 }
 
@@ -1709,9 +1225,9 @@ body {
 /* ===== TOAST NOTIFICATION ===== */
 .toast-notification {
     position: fixed;
-    top: 50%;
+    bottom: 20px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background-color: var(--primary-color);
     color: white;
     padding: 12px 24px;
@@ -1776,33 +1292,33 @@ body.dark-mode {
     border-color: var(--dark-border);
 }
 
-.dark-mode .search-input-group {
-    background: linear-gradient(135deg, var(--dark-primary), var(--dark-secondary));
-    border: none;
+.dark-mode .search-input-group,
+.dark-mode #searchTerm,
+.dark-mode .versions-table,
+.dark-mode .versions-scroll-container,
+.dark-mode .example,
+.dark-mode .version-search {
+    background-color: var(--dark-input-bg);
+    border-color: var(--dark-border);
 }
 
 .dark-mode #searchTerm,
 .dark-mode .version-search {
-    color: white;
+    color: var(--dark-text);
 }
 
 .dark-mode .search-icon {
-    color: white;
+    color: var(--dark-text-light);
 }
 
-.dark-mode .search-button {
-    background-color: white;
-    color: var(--dark-primary);
-}
-
-.dark-mode .search-button:hover {
-    background-color: var(--success-color);
-    color: white;
+.dark-mode .example {
+    border-color: var(--dark-border);
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 992px) {
     .hero-section {
+        flex-direction: column;
         text-align: center;
     }
     
@@ -1811,14 +1327,18 @@ body.dark-mode {
         margin-right: auto;
     }
     
+    .hero-image {
+        order: -1;
+    }
+    
     .footer-content {
         flex-direction: column;
-        gap: 20px;
+        gap: 30px;
     }
     
     .footer-links {
         flex-wrap: wrap;
-        gap: 20px;
+        gap: 30px;
     }
 }
 
@@ -1833,7 +1353,7 @@ body.dark-mode {
     }
     
     .apps-grid {
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
     
     .features-grid {
@@ -1858,6 +1378,7 @@ body.dark-mode {
         box-shadow: none;
         gap: 8px;
         height: auto;
+        position: relative;
         align-items: stretch;
     }
     
@@ -1869,14 +1390,14 @@ body.dark-mode {
 
     #searchTerm {
         width: 100%;
-        height: 56px;
+        height: 48px;
         box-shadow: var(--shadow-sm);
         padding-left: 42px;
     }
     
     .search-button {
         width: 100%;
-        height: 56px;
+        height: 48px;
         justify-content: center;
     }
     
@@ -1892,15 +1413,6 @@ body.dark-mode {
     
     .help-toggle {
         font-size: 15px;
-    }
-    
-    .tab-btn {
-        padding: 12px 16px;
-        font-size: 14px;
-    }
-    
-    .tab-btn i {
-        font-size: 16px;
     }
 }
 
