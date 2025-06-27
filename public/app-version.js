@@ -12,11 +12,11 @@ const setDisplay = (id, value) => { const el = $(id); if (el) el.style.display =
 function sanitizeHTML(str) {
     if (!str) return '';
     return str.toString()
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, ''');
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 function formatDate(dateString) {
@@ -67,17 +67,22 @@ function initApp() {
     setupPopularApps();
     checkUrlForAppId();
     
-    // Load ads
+    // Load Google Ads
     if (typeof adsbygoogle !== 'undefined' && Array.isArray(window.adsbygoogle)) {
-        adsbygoogle = window.adsbygoogle || [];
-        adsbygoogle.push({});
+        try {
+            adsbygoogle.push({});
+        } catch (e) {
+            console.error('Google Ads failed to load:', e);
+        }
+    } else {
+        console.warn('Google Ads script not loaded');
     }
     
     // Auto focus search input
     const searchInput = $('searchTerm');
     if (searchInput) searchInput.focus();
 
-    // Hide sections initially
+    // Hide sections initially to reduce page length
     setDisplay('popular-section', 'none');
     setDisplay('features-section', 'none');
     window.addEventListener('scroll', () => {
@@ -159,19 +164,20 @@ function setupSearchForm() {
         }
 
         try {
-            const res = await fetch('/api/verify-turnstile', {
+            const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 'cf-turnstile-response': token })
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `secret=0x4AAAAAABdbzXYVaBJR7Vav&response=${encodeURIComponent(token)}`
             });
             const result = await res.json();
 
             if (!res.ok || !result.success) {
-                showSearchError('Xác minh bảo mật thất bại. Vui lòng thử lại.');
+                showSearchError('Xác minh Turnstile thất bại. Vui lòng thử lại. Mã lỗi: ' + (result['error-codes']?.join(', ') || 'Không rõ'));
                 return;
             }
         } catch (err) {
             showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
+            console.error('Turnstile verification error:', err);
             return;
         }
 
@@ -194,10 +200,10 @@ function setupSearchForm() {
             if (!term || !token) return;
 
             try {
-                const res = await fetch('/api/verify-turnstile', {
+                const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 'cf-turnstile-response': token })
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `secret=YOUR_SECRET_KEY&response=${encodeURIComponent(token)}`
                 });
                 const result = await res.json();
                 if (!res.ok || !result.success) return;
@@ -649,7 +655,6 @@ function setupPopularApps() {
         { trackId: '310633997', trackName: 'WhatsApp', artworkUrl100: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/1b/4e/3c/1b4e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
         { trackId: '389801252', trackName: 'Instagram', artworkUrl100: 'https://is3-ssl.mzstatic.com/image/thumb/Purple126/v4/3a/1e/3c/3a1e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
         { trackId: '529479190', trackName: 'Clash of Clans', artworkUrl100: 'https://is4-ssl.mzstatic.com/image/thumb/Purple126/v4/4a/2e/3c/4a2e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
-        // Add more mock apps as needed
     ];
 
     appsGrid.innerHTML = popularApps.map((app, index) => `
