@@ -12,7 +12,7 @@
     --border-color: #e9ecef;
     --error-color: #f72585;
     --warning-color: #f8961e;
-    --input-bg: #f1f3f5;
+    --input-bg: #ffffff;
     --dark-primary: #4895ef;
     --dark-secondary: #4361ee;
     --dark-bg: #121212;
@@ -204,9 +204,7 @@ body {
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
     height: 60px;
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     border: 2px solid var(--primary-hover);
-    animation: pulse 2s infinite;
 }
 
 .search-input-group:focus-within {
@@ -225,7 +223,7 @@ body {
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: white;
+    color: var(--text-color);
     z-index: 1;
     pointer-events: none;
     font-size: 20px;
@@ -242,13 +240,13 @@ body {
     border: none;
     font-size: 16px;
     outline: none;
-    background-color: transparent;
+    background: linear-gradient(135deg, var(--input-bg), #e6f0fa);
     height: 100%;
-    color: white;
+    color: var(--text-color);
 }
 
 #searchTerm::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-light);
 }
 
 .cf-turnstile {
@@ -396,6 +394,7 @@ body {
     position: relative;
     border-radius: var(--radius-sm);
     overflow: hidden;
+    min-height: 100px;
 }
 
 .ads-label {
@@ -408,6 +407,10 @@ body {
     border-radius: 4px;
     font-size: 10px;
     text-transform: uppercase;
+}
+
+.ads-container ins.adsbygoogle[data-ad-status="unfilled"] {
+    display: none !important;
 }
 
 /* ===== LOADING ===== */
@@ -1305,17 +1308,16 @@ body.dark-mode {
 }
 
 .dark-mode .search-input-group {
-    background: linear-gradient(135deg, var(--dark-primary), var(--dark-secondary));
     border: 2px solid var(--dark-primary);
 }
 
-.dark-mode #searchTerm,
-.dark-mode .version-search {
-    color: white;
+.dark-mode #searchTerm {
+    background: linear-gradient(135deg, var(--dark-input-bg), #2a3b5e);
+    color: var(--dark-text);
 }
 
 .dark-mode .search-icon {
-    color: white;
+    color: var(--dark-text);
 }
 
 .dark-mode .search-button {
@@ -1382,7 +1384,6 @@ body.dark-mode {
     
     .search-input-group {
         flex-direction: column;
-        background-color: transparent;
         box-shadow: none;
         gap: 8px;
         height: auto;
@@ -1401,7 +1402,7 @@ body.dark-mode {
         height: 56px;
         box-shadow: var(--shadow-sm);
         padding-left: 42px;
-        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+        background: linear-gradient(135deg, var(--input-bg), #e6f0fa);
         border: 2px solid var(--primary-hover);
         border-radius: var(--radius-lg);
     }
