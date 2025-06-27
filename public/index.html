@@ -3,18 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AppInfo - Công cụ tra cứu thông tin ứng dụng iOS</title>
+    <title>AppInfo - Tra cứu thông tin ứng dụng iOS</title>
+    <meta name="description" content="Công cụ tra cứu thông tin ứng dụng iOS chính xác và đầy đủ nhất">
+    <meta name="keywords" content="AppInfo, tra cứu ứng dụng iOS, lịch sử phiên bản, App Store">
+    <meta name="robots" content="index, follow">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="app-version.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR_ADS_CLIENT_ID" crossorigin="anonymous"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="app-version.js" defer></script>
 </head>
 <body>
     <header class="app-header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-mobile-alt"></i>
+                    <i class="fab fa-apple"></i>
                     <div>
-                        AppInfo
+                        <span>AppInfo</span>
                         <div class="subtitle">Công cụ tra cứu thông tin ứng dụng iOS</div>
                     </div>
                 </div>
@@ -25,36 +31,37 @@
         </div>
     </header>
 
-    <main class="container">
-        <section class="hero-section">
+    <section class="hero-section">
+        <div class="container">
             <div class="hero-content">
-                <h1>Tìm kiếm ứng dụng iOS dễ dàng</h1>
+                <h1 class="gradient-text">Tìm kiếm ứng dụng iOS dễ dàng</h1>
                 <p>Khám phá thông tin chi tiết và lịch sử phiên bản</p>
                 <form id="searchForm" class="search-form">
                     <div class="search-input-group">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="searchTerm" placeholder="Tên ứng dụng, App ID hoặc URL App Store">
+                        <input type="text" id="searchTerm" placeholder="Nhập tên ứng dụng, App ID hoặc URL">
+                        <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"></div>
                         <button type="submit" class="search-button">
-                            <i class="fas fa-search"></i>
-                            Tìm kiếm
+                            <i class="fas fa-arrow-right"></i> Tìm kiếm
                         </button>
                     </div>
-                    <div id="searchError" class="error-message"></div>
-                    <p class="search-cta">Nhập tên ứng dụng, App ID hoặc URL để khám phá ngay!</p>
+                    <div class="search-cta">Nhập tên ứng dụng, App ID hoặc URL để khám phá ngay!</div>
                 </form>
             </div>
-        </section>
+        </div>
+    </section>
 
+    <div class="container">
         <nav class="breadcrumb">
             <a href="/">Trang chủ</a>
             <span class="separator">/</span>
             <span id="currentPage">Tìm kiếm ứng dụng</span>
         </nav>
 
-        <div class="quick-help">
+        <section class="quick-help container">
             <a href="#" class="help-toggle">
                 <i class="fas fa-question-circle"></i>
-                Hướng dẫn nhanh
+                <span>Hướng dẫn nhanh</span>
                 <i class="fas fa-chevron-down"></i>
             </a>
             <div class="help-content">
@@ -96,46 +103,41 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <div class="ads-container">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="YOUR_ADS_CLIENT_ID" data-ad-slot="YOUR_AD_SLOT" data-ad-format="auto" data-full-width-responsive="true"></ins>
             <span class="ads-label">Quảng cáo</span>
-            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-xxx" data-ad-slot="xxx" data-ad-format="auto"></ins>
         </div>
 
-        <div class="loading-container" id="loading">
+        <div id="loading" class="loading-container">
             <div class="loader"></div>
             <div class="loading-text">Đang tải dữ liệu...</div>
         </div>
 
-        <div class="search-results-container" id="result"></div>
+        <div id="searchError" class="error-message"></div>
 
-        <div class="app-info-container" id="appInfo"></div>
+        <div id="appInfoSkeleton" class="app-info-container skeleton"></div>
 
-        <div class="app-info-container skeleton" id="appInfoSkeleton"></div>
+        <div id="result" class="search-results-container"></div>
 
-        <div class="empty-state" id="noResults">
-            <i class="fas fa-exclamation-circle"></i>
-            <h3>Không tìm thấy kết quả</h3>
-            <p>Chúng tôi không tìm thấy ứng dụng phù hợp với từ khóa của bạn.</p>
-            <button class="retry-button">Thử lại</button>
-        </div>
+        <div id="appInfo" class="app-info-container"></div>
 
-        <div class="popular-section">
-            <h2 class="section-title">
-                <i class="fas fa-star"></i>
+        <section id="popular-section" class="popular-section">
+            <div class="section-title">
+                <i class="fas fa-fire"></i>
                 <span>Ứng dụng phổ biến</span>
                 <span class="section-subtitle">Nhấp để tìm kiếm ngay!</span>
-            </h2>
+            </div>
             <div class="apps-grid"></div>
             <button class="load-more-popular">Xem thêm ứng dụng</button>
-        </div>
+        </section>
 
-        <div class="features-section">
-            <h2 class="section-title">
-                <i class="fas fa-rocket"></i>
-                Tại sao chọn AppInfo?
-            </h2>
+        <section id="features-section" class="features-section">
+            <div class="section-title">
+                <i class="fas fa-star"></i>
+                <span>Tại sao chọn AppInfo?</span>
+            </div>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon"><i class="fas fa-history"></i></div>
@@ -153,25 +155,25 @@
                     <p>Luôn cập nhật thông tin mới nhất từ nhà phát triển</p>
                 </div>
             </div>
-        </div>
-    </main>
+        </section>
+    </div>
 
     <footer class="app-footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-brand">
                     <div class="logo">
-                        <i class="fas fa-mobile-alt"></i>
-                        AppInfo
+                        <i class="fab fa-apple"></i>
+                        <span>AppInfo</span>
                     </div>
-                    <div class="footer-description">Công cụ tra cứu thông tin ứng dụng iOS chính xác và đầy đủ nhất</div>
+                    <p class="footer-description">Công cụ tra cứu thông tin ứng dụng iOS chính xác và đầy đủ nhất</p>
                 </div>
                 <div class="footer-links">
                     <div class="links-group">
                         <h3>Công cụ</h3>
                         <a href="#"><i class="fas fa-search"></i> Tìm kiếm ứng dụng</a>
                         <a href="#"><i class="fas fa-history"></i> Lịch sử phiên bản</a>
-                        <a href="#"><i class="fas fa-star"></i> Ứng dụng phổ biến</a>
+                        <a href="#"><i class="fas fa-fire"></i> Ứng dụng phổ biến</a>
                     </div>
                     <div class="links-group">
                         <h3>Thông tin</h3>
@@ -193,7 +195,7 @@
         </div>
     </footer>
 
-    <div class="modal" id="modal">
+    <div id="modal" class="modal">
         <div class="modal-overlay"></div>
         <div class="modal-content">
             <div class="modal-header">
@@ -206,8 +208,6 @@
         </div>
     </div>
 
-    <div class="toast-notification" id="toast"></div>
-
-    <script src="app-version.js"></script>
+    <div id="toast" class="toast-notification"></div>
 </body>
 </html>

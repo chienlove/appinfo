@@ -203,7 +203,7 @@ function setupSearchForm() {
                 const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `secret=YOUR_SECRET_KEY&response=${encodeURIComponent(token)}`
+                    body: `secret=0x4AAAAAABdbzXYVaBJR7Vav&response=${encodeURIComponent(token)}`
                 });
                 const result = await res.json();
                 if (!res.ok || !result.success) return;
