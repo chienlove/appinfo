@@ -24,7 +24,7 @@ const handler = async (req, res) => {
 
   const token = req.body && req.body['cf-turnstile-response'];
   const ip = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '';
-  const secret = process.env.TURNSTILE_SECRET;
+  const secret = process.env.TURNSTILE_SECRET || '0x4AAAAAABdbzXYVaBJR7Vav'; // Fallback key
 
   if (!token) {
     return res.status(400).json({ error: 'Missing Turnstile token' });
@@ -49,13 +49,20 @@ const handler = async (req, res) => {
     const data = await result.json();
 
     if (!data.success) {
-      return res.status(403).json({ error: 'Turnstile verification failed', details: data });
+      console.error('Turnstile verification failed:', data);
+      return res.status(403).json({ 
+        error: 'Turnstile verification failed', 
+        details: data['error-codes'] || 'Unknown error' 
+      });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('Turnstile verification error:', err);
-    return res.status(500).json({ error: 'Internal server error', details: err.message });
+    return res.status(500).json({ 
+      error: 'Internal server error', 
+      details: err.message 
+    });
   }
 };
 

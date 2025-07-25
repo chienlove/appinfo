@@ -146,7 +146,7 @@ function setupSearchForm() {
         const showSearchError = (msg) => {
             const errBox = $('searchError');
             if (errBox) {
-                errBox.innerHTML = msg;
+                errBox.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${msg}`;
                 errBox.style.display = 'block';
             }
         };
@@ -164,30 +164,40 @@ function setupSearchForm() {
         }
 
         try {
-            const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            const verifyResponse = await fetch('/api/verify-turnstile', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `secret=0x4AAAAAABdbzXYVaBJR7Vav&response=${encodeURIComponent(token)}`
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    'cf-turnstile-response': token 
+                })
             });
-            const result = await res.json();
+            
+            if (!verifyResponse.ok) {
+                throw new Error(`HTTP error! status: ${verifyResponse.status}`);
+            }
 
-            if (!res.ok || !result.success) {
-                showSearchError('Xác minh Turnstile thất bại. Vui lòng thử lại. Mã lỗi: ' + (result['error-codes']?.join(', ') || 'Không rõ'));
+            const result = await verifyResponse.json();
+
+            if (!result.success) {
+                showSearchError('Xác minh Turnstile thất bại. Vui lòng thử lại.');
                 return;
             }
+
+            resetSearchState();
+            searchApp(term);
+
+            if (typeof turnstile !== 'undefined') {
+                setTimeout(() => {
+                    turnstile.reset();
+                }, 1500);
+            }
         } catch (err) {
-            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
             console.error('Turnstile verification error:', err);
+            showSearchError('Lỗi khi xác minh Turnstile. Vui lòng thử lại.');
             return;
-        }
-
-        resetSearchState();
-        searchApp(term);
-
-        if (typeof turnstile !== 'undefined') {
-            setTimeout(() => {
-                turnstile.reset();
-            }, 1500);
         }
     });
 
@@ -200,13 +210,23 @@ function setupSearchForm() {
             if (!term || !token) return;
 
             try {
-                const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+                const verifyResponse = await fetch('/api/verify-turnstile', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: `secret=0x4AAAAAABdbzXYVaBJR7Vav&response=${encodeURIComponent(token)}`
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        'cf-turnstile-response': token 
+                    })
                 });
-                const result = await res.json();
-                if (!res.ok || !result.success) return;
+                
+                if (!verifyResponse.ok) {
+                    return;
+                }
+
+                const result = await verifyResponse.json();
+                if (!result.success) return;
             } catch {
                 return;
             }
@@ -536,7 +556,7 @@ function displayAppInfo(app) {
 async function fetchVersions(appId) {
     try {
         setDisplay('loading', 'flex');
-        const apiUrl = new URL('/api/versions', window.location.origin);
+        const apiUrl = new URL('/api/getAppVersions', window.location.origin);
         apiUrl.searchParams.set('id', appId);
         
         const response = await fetch(apiUrl.toString(), {
@@ -549,7 +569,7 @@ async function fetchVersions(appId) {
         }
         
         const data = await response.json();
-        versions = data.results || [];
+        versions = data.data || [];
         displayVersions(versions);
         
         const versionSearch = document.querySelector('.version-search');
@@ -645,8 +665,10 @@ function displayVersions(versionsToDisplay) {
 }
 
 function setupPopularApps() {
-    const appsGrid = document.querySelector('.apps-grid');
-    const loadMoreBtn = document.querySelector('.load-more-popular');
+    const popularSection = $('#popular-section');
+    const appsGrid = popularSection?.querySelector('.apps-grid');
+    const loadMoreBtn = popularSection?.querySelector('.load-more-popular');
+    
     if (!appsGrid || !loadMoreBtn) return;
 
     // Mock data for popular apps
@@ -655,6 +677,8 @@ function setupPopularApps() {
         { trackId: '310633997', trackName: 'WhatsApp', artworkUrl100: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/1b/4e/3c/1b4e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
         { trackId: '389801252', trackName: 'Instagram', artworkUrl100: 'https://is3-ssl.mzstatic.com/image/thumb/Purple126/v4/3a/1e/3c/3a1e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
         { trackId: '529479190', trackName: 'Clash of Clans', artworkUrl100: 'https://is4-ssl.mzstatic.com/image/thumb/Purple126/v4/4a/2e/3c/4a2e3c8a-7c3b-0f7a-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
+        { trackId: '447188370', trackName: 'TikTok', artworkUrl100: 'https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/7a/0c/4b/7a0c4b9b-7b8b-8c3f-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' },
+        { trackId: '333903271', trackName: 'Twitter', artworkUrl100: 'https://is5-ssl.mzstatic.com/image/thumb/Purple126/v4/7a/0c/4b/7a0c4b9b-7b8b-8c3f-6f2e-1e3b9e8b9b7d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0.png/100x100bb.jpg' }
     ];
 
     appsGrid.innerHTML = popularApps.map((app, index) => `
@@ -681,6 +705,9 @@ function setupPopularApps() {
         });
         loadMoreBtn.style.display = 'none';
     });
+
+    // Hiển thị section popular apps
+    popularSection.style.display = 'block';
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
